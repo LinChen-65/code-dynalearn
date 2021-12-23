@@ -46,7 +46,8 @@ config = {
     "train_details/val_bias": 0.5,
     "train_details/val_fraction": 0.01,
     "train_details/train_bias": 0.5,
-    "train_details/epochs": 60,
+    #"train_details/epochs": 60, #original
+    "train_details/epochs": 2,#test #20211222
     "networks/num_nodes": 1000,
     "weight_type": "state",
 }

@@ -1,6 +1,6 @@
 {
     "default":{
-        "path_to_data": "../data/",
+        "path_to_data": "processed-dataset/",
         "path_to_script": "./sources",
         "modules_to_load": [],
         "source_path": "./",

@@ -7,6 +7,7 @@ import torch
 import matplotlib.pyplot as plt
 import time
 import tqdm
+import pdb
 
 from os.path import exists, join
 
@@ -15,13 +16,18 @@ def loading_covid_data(
     experiment, path_to_covid, lag=1, lagstep=1, incidence=True, threshold=False
 ):
     if incidence:
-        dataset = h5py.File(os.path.join(path_to_covid, "spain-covid19cases.h5"), "r")
+        #dataset = h5py.File(os.path.join(path_to_covid, "spain-covid19cases.h5"), "r")
+        print('path_to_covid: ', path_to_covid)
+        dataset = h5py.File(os.path.join(os.path.abspath('../..'),path_to_covid, "spain-covid19-dataset.h5"), "r") #20211221
+        pdb.set_trace()
         num_states = 1
     else:
         dataset = h5py.File(os.path.join(path_to_covid, "spain-covid19.h5"), "r")
         num_states = 3
-    X = dataset["weighted-multiplex/data/inputs/d0"][...]
-    Y = dataset["weighted-multiplex/data/targets/d0"][...]
+    #X = dataset["weighted-multiplex/data/inputs/d0"][...]
+    #Y = dataset["weighted-multiplex/data/targets/d0"][...]
+    X = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221
+    Y = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221
     networks = dataset["weighted-multiplex/data/networks/d0"]
 
     data = {
@@ -40,10 +46,11 @@ def loading_covid_data(
         x = np.transpose(x, (1, 2, 0))
         inputs[t] = x
         targets[t] = y
+    pdb.set_trace()
     data["inputs"].add(dynalearn.datasets.StateData(data=inputs))
     data["targets"].add(dynalearn.datasets.StateData(data=targets))
     data["networks"].add(dynalearn.datasets.NetworkData(data=networks))
-    pop = data["networks"][0].data.node_attr["population"]
+    #pop = data["networks"][0].data.node_attr["population"] #20211222注释掉,因为下文也没用到
     experiment.dataset.data = data
     experiment.test_dataset = experiment.dataset.partition(
         type="cleancut", ti=335, tf=-1
@@ -222,6 +229,7 @@ loading_covid_data(
     lagstep=args.lagstep,
     incidence=bool(args.incidence),
 )
+pdb.set_trace()
 experiment.model.nn.history.reset()
 experiment.callbacks[0].current_best = np.inf
 experiment.train_model(save=False, restore_best=True)

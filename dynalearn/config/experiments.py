@@ -52,7 +52,7 @@ class ExperimentConfig(Config):
         weight_type="state",
         seed=None,
     ):
-        cls = cls()
+        cls = cls() #cls之于class类似self之于instance
         if dynamics not in dynamics_config:
             raise ValueError(
                 f"{dynamics} is invalid, valid entries are {list(dynamics_config.keys())}"

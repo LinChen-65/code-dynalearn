@@ -14,6 +14,8 @@ from dynalearn.util import (
     onehot,
 )
 
+import pdb
+
 
 class NetworkData(Data):
     def __init__(self, name="network_data", data=None):
@@ -78,7 +80,7 @@ class NetworkData(Data):
                 if "edge_list" not in group:
                     raise ValueError(f"No edge list found while loading {self.name}.")
                 g[k] = self._load_graph_(group[k])
-            sefl.data = MultiplexNetwork(data=g)
+            self.data = MultiplexNetwork(data=g)
 
     def _save_graph_(self, g, h5file):
         node_list = g.nodes
@@ -100,7 +102,10 @@ class NetworkData(Data):
             edge_group.create_dataset(k, data=v)
 
     def _load_graph_(self, h5file):
+        
         def load_g(h5group):
+            print('Entered load_g() function.')
+            #pdb.set_trace() # 20211221
             node_list = h5group["node_list"][...]
             edge_list = h5group["edge_list"][...]
 
@@ -115,12 +120,24 @@ class NetworkData(Data):
 
             node_attr = {}
             if "node_attr" in h5group:
-                for k, v in h5group["node_attr"].items():
-                    node_attr[k] = v
+                #for k, v in h5group["node_attr"].items(): #original
+                for k, v in h5group["edge_attr"].items(): #test #20211222 #need to load population.data manually
+                    #node_attr[k] = v #original
+                    node_attr[k] = np.ones(len(node_list)) #test #20211222
                 g = set_node_attr(g, node_attr)
             return g
 
         if "edge_list" in h5file:
             return load_g(h5file)
         else:
-            return {k: load_g(v) for k, v in h5file.items()}
+            #return {k: load_g(v) for k, v in h5file.items()} #original
+            #return {k: load_g(v) for k, v in h5file.keys()} # 20211221
+            #pdb.set_trace()
+            '''
+            for k in h5file.keys():# 20211221
+                #pdb.set_trace()
+                return {k: load_g(h5file[k][()])}
+            '''
+            #return load_g(h5file['boat']) #可以 #20211222
+            for k in h5file.keys():# 20211222
+                return {k: load_g(h5file[k])}

@@ -4,6 +4,7 @@ import torch
 from .transformer import Transformer, CUDATransformer, IdentityTransformer
 from dynalearn.networks import Network, MultiplexNetwork
 
+import pdb
 
 class Normalizer(Transformer):
     def __init__(self, name, shape=(), axis=0, auto_cuda=True):
@@ -78,6 +79,7 @@ class Normalizer(Transformer):
             return y
         for i in range(dataset.networks.size):
             x = self.getter(i, dataset)
+            #pdb.set_trace()
             assert isinstance(x, torch.Tensor)
             if x.numel() == 0:
                 self.is_empty = True
@@ -166,7 +168,10 @@ class EdgeNormalizer(Normalizer):
             x = g.get_edge_data()
         else:
             assert isinstance(g, MultiplexNetwork)
-            x = g.get_edge_data()[self.layer]
+            #x = g.get_edge_data()[self.layer] #original
+            x = g.get_edge_data() #20211222
+            x = list(x.values()) #20211222
+            #pdb.set_trace()
 
         return torch.Tensor(x)
 
