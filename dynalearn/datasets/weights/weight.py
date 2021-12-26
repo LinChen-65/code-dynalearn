@@ -6,6 +6,8 @@ from dynalearn.datasets.data import DataCollection, StateData
 from dynalearn.networks import Network, MultiplexNetwork
 from dynalearn.util import Verbose
 
+import pdb
+
 
 class Weight(DataCollection):
     def __init__(self, name="weights", max_num_samples=-1, bias=1.0):
@@ -38,7 +40,8 @@ class Weight(DataCollection):
 
     def compute(self, dataset, verbose=Verbose()):
         self.setUp(dataset)
-        pb = verbose.progress_bar("Computing weights", self.num_updates)
+        #pb = verbose.progress_bar("Computing weights", self.num_updates) #original 
+        pb = None #20211224
         self.compute_features(dataset, pb=pb)
         self.compute_weights(dataset, pb=pb)
         self.clear()
@@ -49,6 +52,7 @@ class Weight(DataCollection):
         self.num_updates = 2 * dataset.networks.size
 
     def compute_features(self, dataset, pb=None):
+        #pdb.set_trace()
         for i in range(dataset.networks.size):
             x = dataset.inputs[i].data
             g = dataset.networks[i].data

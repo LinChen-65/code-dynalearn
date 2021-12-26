@@ -6,6 +6,8 @@ import os
 from cmath import exp, log
 from math import log as mlog
 
+import pdb
+
 
 def sigmoid(x):
     return 1.0 / (np.exp(-x) + 1)
@@ -283,6 +285,7 @@ def get_node_attr(g, to_data=False):
 def set_node_attr(g, node_attr):
     def _set_node_attr(g, node_attr):
         for k, attr in node_attr.items():
+            #pdb.set_trace()
             for i in g.nodes():
                 g.nodes[i][k] = attr[i]
         return g

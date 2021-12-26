@@ -97,7 +97,7 @@ FIPS_CODES_FOR_50_STATES_PLUS_DC = { # https://gist.github.com/wavded/1250983/bf
     }     
 
 
-MSA_NAME_LIST = ['Atlanta','Chicago','Dallas','Houston', 'LosAngeles','Miami','NewYorkCity','Philadelphia','SanFrancisco','WashingtonDC']
+MSA_NAME_LIST = ['Atlanta','Chicago','Dallas','Houston', 'LosAngeles','Miami','Philadelphia','SanFrancisco','WashingtonDC']
 MSA_NAME_FULL_DICT = {
     'Atlanta':'Atlanta_Sandy_Springs_Roswell_GA',
     'Chicago':'Chicago_Naperville_Elgin_IL_IN_WI',

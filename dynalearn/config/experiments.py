@@ -136,7 +136,8 @@ class ExperimentConfig(Config):
         if not os.path.exists(path_to_summary):
             os.makedirs(path_to_summary)
 
-        cls.networks = NetworkConfig.mw_ba(num_nodes=52)
+        #cls.networks = NetworkConfig.mw_ba(num_nodes=52) #original
+        cls.networks = NetworkConfig.mw_ba(num_nodes=52) #original
         if incidence:
             cls.dynamics = DynamicsConfig.incsir()
             cls.model = TrainableConfig.incsir()
@@ -149,13 +150,18 @@ class ExperimentConfig(Config):
         else:
             cls.dynamics.is_weighted = False
             cls.model.is_weighted = False
-        if cls.networks.is_multiplex:
+        print('Assume network is not multiplex') #20211225
+        cls.dynamics.is_multiplex = False #20211225
+        cls.model.is_multiplex = False #20211225
+        '''
+        if cls.networks.is_multiplex: #original
             cls.dynamics.is_multiplex = True
             cls.model.is_multiplex = True
             cls.model.network_layers = cls.networks.layers
         else:
             cls.dynamics.is_multiplex = False
             cls.model.is_multiplex = False
+        '''
 
         cls.metrics = MetricsConfig.covid()
         cls.train_metrics = ["jensenshannon", "model_entropy"]

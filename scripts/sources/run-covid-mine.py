@@ -18,17 +18,23 @@ def loading_covid_data(
     if incidence:
         #dataset = h5py.File(os.path.join(path_to_covid, "spain-covid19cases.h5"), "r")
         print('path_to_covid: ', path_to_covid)
-        dataset = h5py.File(os.path.join(os.path.abspath('../..'),path_to_covid, "spain-covid19-dataset.h5"), "r") #20211221
+        #dataset = h5py.File(os.path.join(os.path.abspath('../..'),path_to_covid, "spain-covid19-dataset.h5"), "r") #20211221
+        MSA_NAME = 'SanFrancisco' #test #20211223
+        dataset = h5py.File(os.path.join(os.path.abspath('../..'),path_to_covid, "data_%s.h5"%(MSA_NAME)), "r") #20211223
         num_states = 1
     else:
         dataset = h5py.File(os.path.join(path_to_covid, "spain-covid19.h5"), "r")
         num_states = 3
     #X = dataset["weighted-multiplex/data/inputs/d0"][...]
     #Y = dataset["weighted-multiplex/data/targets/d0"][...]
-    X = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221 #[...]也可改成[()]
-    Y = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221
-    networks = dataset["weighted-multiplex/data/networks/d0"]
-    pdb.set_trace()
+    #X = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221 #[...]也可改成[()]
+    #Y = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221
+    #networks = dataset["weighted-multiplex/data/networks/d0"]
+    #pdb.set_trace()
+    X = dataset['timeseries'][...]
+    Y = dataset['timeseries'][...]
+    networks = dataset['networks']
+    
 
     data = {
         "inputs": dynalearn.datasets.DataCollection(name="inputs"),
@@ -46,16 +52,22 @@ def loading_covid_data(
         x = np.transpose(x, (1, 2, 0))
         inputs[t] = x
         targets[t] = y
-    pdb.set_trace()
+    
     data["inputs"].add(dynalearn.datasets.StateData(data=inputs))
     data["targets"].add(dynalearn.datasets.StateData(data=targets))
-    data["networks"].add(dynalearn.datasets.NetworkData(data=networks))
+    start = time.time()
+    data["networks"].add(dynalearn.datasets.NetworkData(data=networks)) #This line uses time: 2.80s
+    #print('This line uses time: ',time.time()-start); start = time.time()
     #pop = data["networks"][0].data.node_attr["population"] #20211222注释掉,因为下文也没用到
-    experiment.dataset.data = data
+    experiment.dataset.data = data #This line uses time: 425.95s
+    print('This line uses time: ',time.time()-start); start = time.time()
     experiment.test_dataset = experiment.dataset.partition(
         type="cleancut", ti=335, tf=-1
-    )
-    experiment.partition_val_dataset()
+    ) #This line uses time: 0.002s
+    #print('This line uses time: ',time.time()-start); start = time.time() 
+    experiment.partition_val_dataset() #This line uses time: 0.015s
+    #print('This line uses time: ',time.time()-start); start = time.time()
+    #pdb.set_trace()
     return experiment
 
 

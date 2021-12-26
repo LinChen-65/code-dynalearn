@@ -1,4 +1,13 @@
 {
+    "safegraph":{
+        "path_to_data": "gt-generator/",
+        "path_to_script": "./sources",
+        "modules_to_load": [],
+        "source_path": "./",
+        "account": "",
+        "command": "bash",
+        "device": "cpu"
+    },
     "default":{
         "path_to_data": "processed-dataset/",
         "path_to_script": "./sources",

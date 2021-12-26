@@ -25,6 +25,7 @@ from dynalearn.util.loggers import (
 from dynalearn.util import Verbose
 from os.path import join, exists
 
+import pdb
 
 class Experiment:
     def __init__(self, config, verbose=Verbose()):
@@ -160,6 +161,7 @@ class Experiment:
     # All tasks
     def train_model(self, save=True, restore_best=True):
         self.verbose("\n---Training model---")
+        pdb.set_trace()
 
         self.model.nn.fit(
             self.dataset,
