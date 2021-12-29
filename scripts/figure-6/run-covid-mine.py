@@ -14,16 +14,18 @@ specs = json.load(open(os.path.join(os.path.abspath('..'),"sources/specs.json"),
 config = {
     "name": name,
     "path_to_covid": specs["path_to_data"],
-    "epochs": 200,
+    #"epochs": 200, #original
+    "epochs": 4, #20211228
     "type": ["rnn"],
     "model": [
         "DynamicsGATConv",
-        "FullyConnectedGNN",
-        "IndependentGNN",
-        "KapoorConv",
+        #"FullyConnectedGNN", #original
+        #"IndependentGNN", #original
+        #"KapoorConv", #original
     ],
     "lag": [5],
-    "bias": [0.0, 0.25, 0.5, 0.75, 1.0],
+    #"bias": [0.0, 0.25, 0.5, 0.75, 1.0], #original
+    "bias": [0.0], #20211228
     "val_fraction": 0.1,
 }
 launch_scan(

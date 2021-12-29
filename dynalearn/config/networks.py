@@ -77,7 +77,8 @@ class NetworkConfig(Config):
     def mw_ba(cls, num_nodes=1000, m=2, layers=1):
         w = WeightConfig.uniform()
         t = TransformConfig.sparcifier()
-        cls = cls.ba(num_nodes=num_nodes, m=m, weights=w, transforms=t, layers=layers)
+        #cls = cls.ba(num_nodes=num_nodes, m=m, weights=w, transforms=t, layers=layers) #original
+        cls = cls.ba(num_nodes=num_nodes, m=m, weights=w, transforms=t) #20211226 #Assume network is not multi-weighted
         return cls
 
     @property

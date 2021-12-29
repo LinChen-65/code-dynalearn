@@ -5,10 +5,13 @@ from dynalearn.experiments.metrics import Metrics
 from dynalearn.util import Verbose
 from dynalearn.dynamics.trainable import VARDynamics
 
+import pdb
+
 
 class ForecastMetrics(Metrics):
     def __init__(self, config):
         Metrics.__init__(self, config)
+        #pdb.set_trace()
         self.num_steps = config.forecast.get("num_steps", [1])
         if isinstance(self.num_steps, int):
             self.num_steps = [self.num_steps]
@@ -22,6 +25,7 @@ class ForecastMetrics(Metrics):
         return
 
     def compute(self, experiment, verbose=Verbose()):
+        print('Entered compute()')#; pdb.set_trace()
         self.verbose = verbose
         self.initialize(experiment)
 
@@ -50,9 +54,11 @@ class ForecastMetrics(Metrics):
         if pb is not None:
             pb.close()
 
+        print('Leave compute()')#; pdb.set_trace()
         self.exit(experiment)
 
     def _get_forecast_(self, dataset, num_steps=1, pb=None):
+        #print('Entered _get_forecast_()')#; pdb.set_trace()
         if dataset.shape[0] - num_steps + 1 < 0:
             return np.zeros((0, *dataset.shape[1:-1]))
         y = np.zeros((dataset.shape[0] - num_steps + 1, *dataset.shape[1:-1]))
@@ -64,6 +70,7 @@ class ForecastMetrics(Metrics):
                 if pb is not None:
                     pb.update()
             y[i] = yy
+        #print('Leave _get_forecast_()')#; pdb.set_trace()
         return y
 
     def _get_data_(self, dataset, total=False):
@@ -78,24 +85,31 @@ class ForecastMetrics(Metrics):
 
 class GNNForecastMetrics(ForecastMetrics):
     def get_model(self, experiment):
+        print('Entered GNNForecastMetrics.get_model() in experiments/metrics/forcast.py.')
         model = experiment.model
         model.network = experiment.dataset.networks[0].data
+        print('Leave GNNForecastMetrics.get_model() in experiments/metrics/forcast.py.')
         return model
 
 
 class TrueForecastMetrics(ForecastMetrics):
     def get_model(self, experiment):
+        print('Entered TrueForecastMetrics.get_model() in experiments/metrics/forcast.py.')
         model = experiment.dynamics
         model.network = experiment.dataset.networks[0].data
+        print('Leave TrueForecastMetrics.get_model() in experiments/metrics/forcast.py.')
         return model
 
 
 class VARForecastMetrics(ForecastMetrics):
     def get_model(self, experiment):
+        print('Entered VARForecastMetrics.get_model() in experiments/metrics/forcast.py.')
+        pdb.set_trace()
         model = VARDynamics(experiment.model.num_states, lag=experiment.model.lag)
         model.network = experiment.dataset.networks[0].data
         c = experiment.dataset.state_weights[0].data > 0
         X = experiment.dataset.inputs[0].data[c]
         Y = experiment.dataset.targets[0].data[c]
         model.fit(X, Y=Y)
+        print('Leave VARForecastMetrics.get_model() in experiments/metrics/forcast.py.')
         return model

@@ -23,6 +23,7 @@ from dynalearn.datasets.weights import (
 from dynalearn.datasets.transforms.getter import get as get_transforms
 from dynalearn.util import get_node_attr, Verbose, LoggerDict
 
+import pdb
 
 class Dataset:
     def __init__(self, config=None, **kwargs):
@@ -231,12 +232,15 @@ class Dataset:
 
     @data.setter
     def data(self, data):
+        print('Entered data() in datasets/dataset.py')
         self._data = data
         if self.use_transformed:
             self._transformed_data = self._transform_data_(data)
-        self.weights = self._get_weights_()
+        #pdb.set_trace()
+        self.weights = self._get_weights_() #转到datasets/continuous_dataset.py的_get_weights_() 
         self.indices = self._get_indices_()
         self.sampler.reset()
+        print('Leave data() in datasets/dataset.py')
 
     @property
     def inputs(self):
@@ -397,6 +401,7 @@ class Dataset:
         return indices_dict
 
     def _get_weights_(self):
+        print('Entered _get_weights_.'); pdb.set_trace()
         weights = Weight(bias=self.bias)
         weights.compute(self, verbose=self.verbose)
         return weights

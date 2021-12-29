@@ -30,11 +30,10 @@ def loading_covid_data(
     #X = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221 #[...]也可改成[()]
     #Y = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221
     #networks = dataset["weighted-multiplex/data/networks/d0"]
-    #pdb.set_trace()
+
     X = dataset['timeseries'][...]
     Y = dataset['timeseries'][...]
     networks = dataset['networks']
-    
 
     data = {
         "inputs": dynalearn.datasets.DataCollection(name="inputs"),
@@ -57,18 +56,21 @@ def loading_covid_data(
     data["targets"].add(dynalearn.datasets.StateData(data=targets))
     start = time.time()
     data["networks"].add(dynalearn.datasets.NetworkData(data=networks)) #This line uses time: 2.80s
-    #print('This line uses time: ',time.time()-start); start = time.time()
     #pop = data["networks"][0].data.node_attr["population"] #20211222注释掉,因为下文也没用到
+    print('Initialize experiment.dataset.data with data.')
     experiment.dataset.data = data #This line uses time: 425.95s
     print('This line uses time: ',time.time()-start); start = time.time()
+    
     experiment.test_dataset = experiment.dataset.partition(
-        type="cleancut", ti=335, tf=-1
+        type="cleancut", 
+        #ti=335, #original
+        ti=50,
+        tf=-1
     ) #This line uses time: 0.002s
-    #print('This line uses time: ',time.time()-start); start = time.time() 
     experiment.partition_val_dataset() #This line uses time: 0.015s
-    #print('This line uses time: ',time.time()-start); start = time.time()
-    #pdb.set_trace()
-    return experiment
+    
+    #return experiment #original
+    return experiment,targets #20211229
 
 
 ## REQUIRED PARAMETERS
@@ -194,6 +196,7 @@ config = dynalearn.config.ExperimentConfig.covid(
     incidence=bool(args.incidence),
 )
 
+
 config.train_details.val_fraction = args.val_fraction
 config.train_details.val_bias = args.bias
 config.dataset.bias = args.bias
@@ -214,6 +217,8 @@ elif args.model == "Kapoor2020":
 config.model.type = args.type
 config.train_details.epochs = args.epochs
 config.train_metrics = []
+'''
+#original
 config.metrics.names = [
     "AttentionMetrics",
     "AttentionStatesNMIMetrics",
@@ -222,10 +227,15 @@ config.metrics.names = [
     "GNNForecastMetrics",
     "VARForecastMetrics",
 ]
+'''
+config.metrics.names = [ #20211229
+    "TrueForecastMetrics",
+    "GNNForecastMetrics",
+]
 config.metrics.num_steps = [1, 7, 14]
 
 # Defining the experiment
-experiment = dynalearn.experiments.Experiment(config, verbose=args.verbose)
+experiment = dynalearn.experiments.Experiment(config, verbose=args.verbose) #在experiments/experiment.py的Experiment的__init__()执行self.metrics = get_metrics(config.metrics)
 
 experiment.clean()
 experiment.begin()
@@ -234,6 +244,8 @@ experiment.save_config()
 
 # Training on covid data
 experiment.mode = "main"
+'''
+#original
 loading_covid_data(
     experiment,
     args.path_to_covid,
@@ -241,11 +253,23 @@ loading_covid_data(
     lagstep=args.lagstep,
     incidence=bool(args.incidence),
 )
-pdb.set_trace()
+'''
+_,target = loading_covid_data( #20211229
+    experiment,
+    args.path_to_covid,
+    lag=args.lag,
+    lagstep=args.lagstep,
+    incidence=bool(args.incidence),
+)
 experiment.model.nn.history.reset()
 experiment.callbacks[0].current_best = np.inf
 experiment.train_model(save=False, restore_best=True)
-experiment.compute_metrics()
+experiment.compute_metrics() #调用experiments/experiment.py的def compute_metrics()
+
+true_forecast = experiment.metrics["TrueForecastMetrics"].data["test-1"] # Ground Truth (GT) #20211229
+gnn_forecast = experiment.metrics["GNNForecastMetrics"].data["test-1"] # GNN prediction #20211229
+pdb.set_trace()
+
 experiment.save(label_with_mode=False)
 experiment.end()
 experiment.zip(

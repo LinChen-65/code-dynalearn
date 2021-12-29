@@ -5,10 +5,12 @@ from random import sample
 from .metrics import Metrics
 from dynalearn.networks import Network, MultiplexNetwork
 
+import pdb
 
 class PredictionMetrics(Metrics):
     def __init__(self, config):
         Metrics.__init__(self, config)
+        #pdb.set_trace()
         self.max_num_points = config.prediction.get("max_num_points", np.inf)
         self.model = None
         self.names = [
@@ -47,6 +49,8 @@ class PredictionMetrics(Metrics):
         self.model.network = self.dataset.data["networks"][index].data
 
     def initialize(self, experiment):
+        print('Entered PredictionMetrics: initialize() in experiments/metrics/prediction.py.')
+        #pdb.set_trace()
         self.model = experiment.model
         self.dynamics = experiment.dynamics
         self.dataset = experiment.dataset
@@ -98,6 +102,7 @@ class PredictionMetrics(Metrics):
             self.names.extend(["test_true", "test_pred", "test_degree", "test_index"])
             update_factor += 4
         self.num_updates *= update_factor
+        print('Leave PredictionMetrics: initialize() in experiments/metrics/prediction.py.')
 
     def _get_points_(self):
         self.points = {}

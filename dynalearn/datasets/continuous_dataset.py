@@ -17,6 +17,7 @@ from dynalearn.config import Config
 from dynalearn.util import from_nary
 from dynalearn.util import to_edge_index, onehot, get_node_attr
 
+import pdb
 
 class ContinuousDataset(Dataset):
     def __getitem__(self, index):
@@ -48,15 +49,16 @@ class ContinuousStateWeightDataset(ContinuousDataset):
             raise ValueError("[total] and [compounded] are mutually exclusive.")
 
     def _get_weights_(self):
-        if self.total:
-            if self.m_networks.is_weighted:
+        print('Enter _get_weights_() in continuous_dataset.py')#; pdb.set_trace()
+        if self.total: #True
+            if self.m_networks.is_weighted: #False
                 weights = StrengthContinuousGlobalStateWeight(
                     reduce=self.reduce, bias=self.bias
                 )
             else:
-                weights = ContinuousGlobalStateWeight(
+                weights = ContinuousGlobalStateWeight( #转到datasets/weights/continuous.py 
                     reduce=self.reduce, bias=self.bias
-                )
+                ) # 这个很快，不耗时
         else:
             if self.m_networks.is_weighted and self.compounded:
                 weights = StrengthContinuousCompoundStateWeight(
@@ -72,5 +74,6 @@ class ContinuousStateWeightDataset(ContinuousDataset):
                 )
             else:
                 weights = ContinuousStateWeight(bias=self.bias)
-        weights.compute(self, verbose=self.verbose)
+        print('Next line: weights.compute')
+        weights.compute(self, verbose=self.verbose) #转到datasets/weights/weight.py的def compute
         return weights

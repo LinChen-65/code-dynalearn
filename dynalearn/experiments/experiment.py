@@ -49,7 +49,7 @@ class Experiment:
 
         # Training related
         self.train_details = config.train_details
-        self.metrics = get_metrics(config.metrics)
+        self.metrics = get_metrics(config.metrics) #from dynalearn.experiments.metrics.getter import get as get_metrics
         self.train_metrics = get_train_metrics(config.train_metrics)
         self.callbacks = get_callbacks(config.callbacks)
 
@@ -122,6 +122,7 @@ class Experiment:
             "model.pt",
             "optim.pt",
         ]
+        #回到/scripts/sources/run-covid.py(219)<module>()
 
     # Run command
     def run(self, tasks=None):
@@ -146,7 +147,7 @@ class Experiment:
         if "time" in self.loggers.keys():
             begin = self.loggers["time"].log["begin"]
             self.verbose(f"Current time: {begin}")
-        self.verbose(f"\n---Config---")
+        self.verbose(f"\n---Config--- (experiment.py)")
         self.verbose(f"{self.config}")
 
     def end(self):
@@ -161,9 +162,10 @@ class Experiment:
     # All tasks
     def train_model(self, save=True, restore_best=True):
         self.verbose("\n---Training model---")
-        pdb.set_trace()
+        #pdb.set_trace()
 
-        self.model.nn.fit(
+        #self.model: self.model: <dynalearn.dynamics.trainable.incidence.SGNNIncidenceDynamics object>
+        self.model.nn.fit(  #调用nn/models/Model的fit()
             self.dataset,
             epochs=self.train_details.epochs,
             batch_size=self.train_details.batch_size,
@@ -172,7 +174,7 @@ class Experiment:
             callbacks=self.callbacks,
             loggers=self.loggers,
             verbose=self.verbose,
-        )
+        ) #转到nn/transformers/batch.py(40)forward()
 
         if save:
             self.save_model()

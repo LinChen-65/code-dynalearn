@@ -31,7 +31,7 @@ def get(config):
     metrics = {}
     for n in names:
         if n in __metrics__:
-            metrics[n] = __metrics__[n](config)
+            metrics[n] = __metrics__[n](config) #调用.forecast.py里的相应Metrics方法
         else:
             metrics[n] = CustomMetrics(config)
     return metrics

@@ -6,6 +6,8 @@ import os
 from dynalearn.config import *
 from .util import TrainingConfig, CallbackConfig
 
+import pdb
+
 network_config = {
     "gnp": NetworkConfig.gnp(),
     "ba": NetworkConfig.ba(),
@@ -136,8 +138,12 @@ class ExperimentConfig(Config):
         if not os.path.exists(path_to_summary):
             os.makedirs(path_to_summary)
 
+        # class NetworkConfig is in dynalearn/config/networks.py
         #cls.networks = NetworkConfig.mw_ba(num_nodes=52) #original
-        cls.networks = NetworkConfig.mw_ba(num_nodes=52) #original
+        #cls.networks = NetworkConfig.mw_ba(num_nodes=2943) #20211226, SanFrancisco 
+        #cls.networks = NetworkConfig.ba(num_nodes=52) #20211226, covid-Spanish
+        cls.networks = NetworkConfig.ba(num_nodes=2943) #20211228, SanFrancisco 
+        #pdb.set_trace() #remove_pdb_1227
         if incidence:
             cls.dynamics = DynamicsConfig.incsir()
             cls.model = TrainableConfig.incsir()
@@ -178,6 +184,7 @@ class ExperimentConfig(Config):
             cls.seed = seed
 
         return cls
+        # 返回到run-covid*.py的config = dynalearn.config.ExperimentConfig.covid()
 
     @classmethod
     def test(

@@ -32,7 +32,7 @@ __dynamics__ = {
 def get(config):
     name = config.name
     if name in __dynamics__:
-        return __dynamics__[name](config)
+        return __dynamics__[name](config) #回到experiments/experiment.py(48)__init__()
     else:
         raise ValueError(
             f"{name} is invalid, possible entries are {list(__dynamics__.keys())}"

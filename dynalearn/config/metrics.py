@@ -30,10 +30,12 @@ class MetricsConfig(Config):
         cls = cls()
         cls.names = []
         cls.ltp = LTPConfig.default()
-        cls.prediciton = PredictionConfig.default()
+        #cls.prediciton = PredictionConfig.default() #original 
+        cls.prediction = PredictionConfig.default() #20211229
         cls.statistics = StatisticsConfig.default()
         cls.stationary = StationaryConfig.sis()
         cls.attention = AttentionConfig.default()
+        cls.forecast = ForecastConfig.default() #20211229
 
         return cls
 
@@ -42,7 +44,8 @@ class MetricsConfig(Config):
         cls = cls()
         cls.names = []
         cls.ltp = LTPConfig.default()
-        cls.prediciton = PredictionConfig.default()
+        #cls.prediciton = PredictionConfig.default() #original
+        cls.prediction = PredictionConfig.default()
         cls.statistics = StatisticsConfig.default()
         cls.stationary = StationaryConfig.plancksis()
         cls.attention = AttentionConfig.default()
@@ -54,7 +57,8 @@ class MetricsConfig(Config):
         cls = cls()
         cls.names = []
         cls.ltp = LTPConfig.default()
-        cls.prediciton = PredictionConfig.default()
+        #cls.prediciton = PredictionConfig.default() #original
+        cls.prediction = PredictionConfig.default() #20211229
         cls.statistics = StatisticsConfig.default()
         cls.stationary = StationaryConfig.sissis()
         cls.attention = AttentionConfig.default()

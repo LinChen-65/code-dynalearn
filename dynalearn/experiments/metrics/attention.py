@@ -9,6 +9,7 @@ from dynalearn.nn.models import DynamicsGATConv, Kapoor2020GNN
 from dynalearn.networks import MultiplexNetwork
 from .util.mutual_info import mutual_info
 
+import pdb
 
 class AttentionMetrics(Metrics):
     def __init__(self, config):
@@ -86,8 +87,10 @@ class AttentionMetrics(Metrics):
         for i, x in enumerate(inputs):
             x = self.model.nn.transformers["t_inputs"].forward(x)
             x = self.model.nn.in_layers(x)
-            x = self.model.nn.merge_nodeattr(x, node_attr)
-            out = gnn.forward(x, edge_index, edge_attr, return_attention_weights=True)
+            #x = self.model.nn.merge_nodeattr(x, node_attr) #original
+            x=x #test #202111227
+            #pdb.set_trace()
+            out = gnn.forward(x, edge_index, edge_attr, return_attention_weights=True) #这里有bug
             results[i] = out[1][1].detach().cpu().numpy()
             if pb is not None:
                 pb.update()

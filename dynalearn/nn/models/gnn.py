@@ -18,6 +18,7 @@ from dynalearn.nn.models.getter import get as get_gnn_layer
 from dynalearn.nn.transformers import BatchNormalizer
 from dynalearn.config import Config
 
+import pdb
 
 class GraphNeuralNetwork(Model):
     def __init__(
@@ -32,6 +33,8 @@ class GraphNeuralNetwork(Model):
         config=None,
         **kwargs
     ):
+        print('Entered GraphNeuralNetwork.__init__()')
+        #pdb.set_trace() #remove_pdb_1227
         Model.__init__(self, config=config, **kwargs)
 
         self.in_size = self.config.in_size = in_size
@@ -67,12 +70,12 @@ class GraphNeuralNetwork(Model):
             self.edge_layers = Sequential(Identity())
 
         self.in_layers = get_in_layers(self.config)
-        self.gnn_layer = get_gnn_layer(self.config)
+        self.gnn_layer = get_gnn_layer(self.config) #self.gnn_layer = get_gnn_layer(self.config) <== from dynalearn.nn.models.getter import get as get_gnn_layer
         self.out_layers = get_out_layers(self.config)
 
-        if normalize:
-            input_size = in_size
-            target_size = out_size
+        if normalize: #True
+            input_size = in_size #1
+            target_size = out_size #1
         else:
             input_size = 0
             target_size = 0
@@ -88,16 +91,20 @@ class GraphNeuralNetwork(Model):
         self.optimizer = self.get_optimizer(self.parameters())
         if torch.cuda.is_available():
             self = self.cuda()
+        print('Leave GraphNeuralNetwork.__init__()') #回到/nn/models/incidence.py(37)__init__()
 
     def forward(self, x, network_attr):
+        #pdb.set_trace() #remove_pdb_1227 #add_pdb_1228 #remove_pdb_1228
         edge_index, edge_attr, node_attr = network_attr
-        x = self.in_layers(x)
-        node_attr = self.node_layers(node_attr)
-        edge_attr = self.edge_layers(edge_attr)
+        x = self.in_layers(x) #x从[52,1]变成[52,16]
+        node_attr = self.node_layers(node_attr) #node_attr不变，前后都是[52,1]
+        edge_attr = self.edge_layers(edge_attr) #edge_attr不变，前后都是[467,1]
 
-        x = self.merge_nodeattr(x, node_attr)
+        #x = self.merge_nodeattr(x, node_attr) #original
+        x = x #20211227
         if self.config.gnn_name == "DynamicsGATConv":
-            x = self.gnn_layer(x, edge_index, edge_attr=edge_attr)
+            # nn/models/dgat.py/class DynamicsGATConv(MessagePassing)的def forward <== self.gnn_layer = get_gnn_layer(self.config) <== from dynalearn.nn.models.getter import get as get_gnn_layer
+            x = self.gnn_layer(x, edge_index, edge_attr=edge_attr) #这里有bug, 20211227 #已解决, 20211227
         else:
             x = self.gnn_layer(x, edge_index)
         if isinstance(x, tuple):

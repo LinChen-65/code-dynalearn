@@ -8,6 +8,7 @@ from torch_geometric.nn.inits import glorot, zeros
 from torch_geometric.utils import degree
 from .util import MultiHeadLinear
 
+import pdb
 
 class DynamicsGATConv(MessagePassing):
     def __init__(
@@ -36,6 +37,7 @@ class DynamicsGATConv(MessagePassing):
         self.normalize = normalize
         self._alpha = None
         self.activation = nn.ReLU()
+        #pdb.set_trace() #remove_pdb_1227
 
         if isinstance(in_channels, int):
             self.linear_source = nn.Linear(in_channels, heads * out_channels, bias=bias)
@@ -48,10 +50,16 @@ class DynamicsGATConv(MessagePassing):
                 in_channels[1], heads * out_channels, bias=bias
             )
 
-        if edge_in_channels > 0 and edge_out_channels > 0:
+        if edge_in_channels > 0 and edge_out_channels > 0: #8,8
+            #original
             self.linear_edge = nn.Linear(
                 edge_in_channels, heads * edge_out_channels, bias=bias
             )
+            
+            #test = 467 #test #20211227 #edge_attr.shape[0]
+            #self.linear_edge = nn.Sequential(nn.Linear(test,8),nn.Linear(8, 8, bias=True))#202112227
+            #self.extra_linear_edge = nn.Linear(467,8) #20211227, covid-Spanish
+            self.extra_linear_edge = nn.Linear(32207,8) #20211228, SanFrancisco
             self.edge_combine = nn.Linear(
                 (edge_out_channels + 1) * heads,
                 edge_out_channels * heads,
@@ -67,7 +75,7 @@ class DynamicsGATConv(MessagePassing):
         self.attn_source = MultiHeadLinear(out_channels, heads=heads, bias=bias)
         self.attn_target = MultiHeadLinear(out_channels, heads=heads, bias=bias)
 
-        if self_attention:
+        if self_attention: #True
             self.self_attn_source = MultiHeadLinear(
                 out_channels, heads=heads, bias=bias
             )
@@ -90,6 +98,8 @@ class DynamicsGATConv(MessagePassing):
             zeros(self.linear_edge.bias)
             glorot(self.edge_combine.weight)
             zeros(self.edge_combine.bias)
+            glorot(self.extra_linear_edge.weight)#20211227
+            zeros(self.extra_linear_edge.bias)#20211227
             self.attn_edge.reset_parameters()
 
         self.attn_source.reset_parameters()
@@ -107,6 +117,7 @@ class DynamicsGATConv(MessagePassing):
         edge_attr=None,
         return_attention_weights=False,
     ):
+        #pdb.set_trace() #remove_pdb_1227
         H, C = self.heads, self.out_channels
         x_s: OptTensor = None
         x_t: OptTensor = None
@@ -141,7 +152,8 @@ class DynamicsGATConv(MessagePassing):
 
         if self.linear_edge is not None:
             assert edge_attr is not None
-            edge_attr = self.linear_edge(edge_attr).view(-1, H, self.edge_out_channels)
+            edge_attr = self.extra_linear_edge(edge_attr.squeeze()) #20211227
+            edge_attr = self.linear_edge(edge_attr).view(-1, H, self.edge_out_channels)#这里有bug:RuntimeError: mat1 dim 1 must match mat2 dim 0
             alpha_e = self.attn_edge(edge_attr)
 
         # propagation
@@ -167,7 +179,8 @@ class DynamicsGATConv(MessagePassing):
         # combining edge attributes with attention coefficients
         if self.linear_edge is not None:
             assert edge_attr is not None
-            edge_attr = torch.cat([edge_attr, alpha.unsqueeze(-1)], axis=-1)
+            #edge_attr = torch.cat([edge_attr, alpha.unsqueeze(-1)], axis=-1) #original
+            edge_attr = torch.cat([edge_attr, alpha.unsqueeze(-1)[0,:,:].unsqueeze(0)], axis=-1) #test #20211227
             edge_attr = edge_attr.view(-1, H * (self.edge_out_channels + 1))
             out_edge = self.edge_combine(edge_attr).view(-1, H, self.edge_out_channels)
         else:

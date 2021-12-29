@@ -7,7 +7,7 @@ from dynalearn.networks import Network, MultiplexNetwork
 from dynalearn.util import Verbose
 
 import pdb
-
+import time
 
 class Weight(DataCollection):
     def __init__(self, name="weights", max_num_samples=-1, bias=1.0):
@@ -38,7 +38,8 @@ class Weight(DataCollection):
             pb.update()
         return np.ones((states.shape[0], states.shape[1]))
 
-    def compute(self, dataset, verbose=Verbose()):
+    def compute(self, dataset, verbose=Verbose()): #从datasets/continuous_dataset.py的weights.compute跳过来
+        print('Entered compute() in datasets/weights/weight.py.')
         self.setUp(dataset)
         #pb = verbose.progress_bar("Computing weights", self.num_updates) #original 
         pb = None #20211224
@@ -52,18 +53,23 @@ class Weight(DataCollection):
         self.num_updates = 2 * dataset.networks.size
 
     def compute_features(self, dataset, pb=None):
+        print('Entered compute_features() in datasets/weights/weight.py.');start=time.time()
         #pdb.set_trace()
         for i in range(dataset.networks.size):
             x = dataset.inputs[i].data
             g = dataset.networks[i].data
-            if isinstance(g, MultiplexNetwork):
+            if isinstance(g, MultiplexNetwork): #False
                 g = g.collapse()
             self.check_network(g)
             self.check_state(x)
-            self._get_features_(g, x, pb=pb)
+            self._get_features_(g, x, pb=pb) #调用datasets/weights/continuous.py的_get_features_() 
+        print('Leave compute_features() in datasets/weights/weight.py.');print('Time: ', time.time()-start)
+        #pdb.set_trace()
         return
 
     def compute_weights(self, dataset, pb=None):
+        print('Entered compute_weights() in datasets/weights/weight.py.');start=time.time()
+        #pdb.set_trace()
         weights = []
         for i in range(dataset.networks.size):
             x = dataset.inputs[i].data
@@ -75,6 +81,8 @@ class Weight(DataCollection):
             w = self._get_weights_(g, x, pb=pb) ** (-self.bias)
             weights = StateData(data=w)
             self.add(weights)
+        print('Leave compute_weights() in datasets/weights/weight.py.');print('Time: ', time.time()-start)
+        #pdb.set_trace()
 
     def _add_features_(self, key, value=None):
         if value is None:

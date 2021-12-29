@@ -8,6 +8,8 @@ from .base import (
 )
 from dynalearn.config import Config
 
+import pdb
+
 EPSILON = 0.0
 
 
@@ -77,11 +79,14 @@ class SimpleDSIR(DeterministicEpidemics):
         return p
 
     def infection_rate(self, x):
+        #print('Entered infection_rate() in dynamics/deterministic_epidemics/simple.py.')
+        #pdb.set_trace()
         I = x[:, 1] * self.population
         if self.infection_type == 1:
             return 1 - (1 - self.infection_prob) ** I
         elif self.infection_type == 2:
             return 1 - (1 - self.infection_prob / self.population) ** I
+        #print('Leave infection_rate() in dynamics/deterministic_epidemics/simple.py.')
 
 
 class WeightedDSIR(SimpleDSIR, WeightedDeterministicEpidemics):

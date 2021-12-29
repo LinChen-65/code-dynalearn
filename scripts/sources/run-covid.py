@@ -25,10 +25,11 @@ def loading_covid_data(
         num_states = 3
     #X = dataset["weighted-multiplex/data/inputs/d0"][...]
     #Y = dataset["weighted-multiplex/data/targets/d0"][...]
+    #networks = dataset["weighted-multiplex/data/networks/d0"]
     X = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221 #[...]也可改成[()]
     Y = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221
-    networks = dataset["weighted-multiplex/data/networks/d0"]
-    pdb.set_trace()
+    networks = dataset["weighted-multiplex/data/networks/d0/boat"] #20211226
+    pdb.set_trace() #remove_pdb_1227
 
     data = {
         "inputs": dynalearn.datasets.DataCollection(name="inputs"),
@@ -46,7 +47,8 @@ def loading_covid_data(
         x = np.transpose(x, (1, 2, 0))
         inputs[t] = x
         targets[t] = y
-    pdb.set_trace()
+    
+    #pdb.set_trace() #remove_pdb_1227
     data["inputs"].add(dynalearn.datasets.StateData(data=inputs))
     data["targets"].add(dynalearn.datasets.StateData(data=targets))
     data["networks"].add(dynalearn.datasets.NetworkData(data=networks))
@@ -56,7 +58,8 @@ def loading_covid_data(
         type="cleancut", ti=335, tf=-1
     )
     experiment.partition_val_dataset()
-    return experiment
+    #return experiment #original
+    return experiment,targets #20211229
 
 
 ## REQUIRED PARAMETERS
@@ -201,7 +204,10 @@ elif args.model == "Kapoor2020":
     config.model.optimizer.weight_decay = 5e-4
 config.model.type = args.type
 config.train_details.epochs = args.epochs
-config.train_metrics = []
+config.train_metrics = [] #把train_metrics清空了？why? (本来是['jensenshannon', 'model_entropy'])
+
+'''
+#original
 config.metrics.names = [
     "AttentionMetrics",
     "AttentionStatesNMIMetrics",
@@ -209,6 +215,11 @@ config.metrics.names = [
     "AttentionEdgeAttrNMIMetrics",
     "GNNForecastMetrics",
     "VARForecastMetrics",
+]
+'''
+config.metrics.names = [ #20211229
+    "TrueForecastMetrics",
+    "GNNForecastMetrics",
 ]
 config.metrics.num_steps = [1, 7, 14]
 
@@ -222,7 +233,17 @@ experiment.save_config()
 
 # Training on covid data
 experiment.mode = "main"
+'''
+#original
 loading_covid_data(
+    experiment,
+    args.path_to_covid,
+    lag=args.lag,
+    lagstep=args.lagstep,
+    incidence=bool(args.incidence),
+)
+'''
+_,target = loading_covid_data(
     experiment,
     args.path_to_covid,
     lag=args.lag,
@@ -232,8 +253,13 @@ loading_covid_data(
 pdb.set_trace()
 experiment.model.nn.history.reset()
 experiment.callbacks[0].current_best = np.inf
-experiment.train_model(save=False, restore_best=True)
+experiment.train_model(save=False, restore_best=True) #调用experiments/experiment.py(166)train_model()
 experiment.compute_metrics()
+
+true_forecast = experiment.metrics["TrueForecastMetrics"].data["test-1"] # Ground Truth (GT)
+gnn_forecast = experiment.metrics["GNNForecastMetrics"].data["test-1"] # GNN prediction
+pdb.set_trace()
+
 experiment.save(label_with_mode=False)
 experiment.end()
 experiment.zip(

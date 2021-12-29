@@ -14,6 +14,7 @@ from dynalearn.nn.history import History
 from dynalearn.nn.optimizers import get as get_optimizer
 from dynalearn.util import Verbose, LoggerDict
 
+import pdb
 
 class Model(nn.Module):
     def __init__(self, config=None, **kwargs):
@@ -149,6 +150,7 @@ class Model(nn.Module):
         self.eval()
 
         pb = verbose.progress_bar(f"Evaluating {name}", len(dataset) + 1)
+        #pdb.set_trace() 
 
         norm = 0.0
         for data in dataset:
@@ -173,7 +175,7 @@ class Model(nn.Module):
         data = self.transformers.forward(data)
         (x, g), y, w = data
         y_true = y
-        y_pred = self.forward(x, g)
+        y_pred = self.forward(x, g) #这里有bug: RuntimeError: mat1 dim 1 must match mat2 dim 0 #这里的forward调用gnn.py的def forward(self, x, network_attr)
         return y_true, y_pred, w
 
     def get_weights(self):

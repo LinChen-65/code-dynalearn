@@ -21,7 +21,7 @@ class SGNNIncidenceDynamics(IncidenceEpidemics):
         IncidenceEpidemics.__init__(self, config)
         self.nn = IncidenceEpidemicsGNN(config)
         if torch.cuda.is_available():
-            self.nn = self.nn.cuda()
+            self.nn = self.nn.cuda() #回到return SGNNIncidenceDynamics(config=config, **kwargs)
 
     def is_dead(self):
         return False
@@ -89,4 +89,4 @@ def GNNIncidenceDynamics(config=None, **kwargs):
     elif not is_weighted and is_multiplex:
         return MGNNIncidenceDynamics(config=config, **kwargs)
     else:
-        return SGNNIncidenceDynamics(config=config, **kwargs)
+        return SGNNIncidenceDynamics(config=config, **kwargs) #回到dynamics/getter.py(35)get()

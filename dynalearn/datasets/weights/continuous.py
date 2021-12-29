@@ -5,6 +5,7 @@ from scipy.stats import gmean
 from .weight import Weight
 from .kde import KernelDensityEstimator
 
+import pdb
 
 class ContinuousStateWeight(Weight):
     def __init__(self, name="weights", reduce=True, bias=1.0):
@@ -17,10 +18,13 @@ class ContinuousStateWeight(Weight):
         )
 
     def _reduce_node_state_(self, index, states, network):
+        print('Entered _reduce_node_state_().')
 
         x = states[index].reshape(-1)
         if self.reduce:
             x = np.array([x.sum()])
+
+        print('Leave _reduce_node_state_().')
         return x
 
     def _reduce_total_state_(self, states, network):
@@ -33,6 +37,7 @@ class ContinuousStateWeight(Weight):
         return
 
     def _get_features_(self, network, states, pb=None):
+        print('Entered _get_features_ in datasets/weights/continuous.py')
         x = self._reduce_network_(network)
         if x is not None:
             self._add_features_("network", x)
@@ -54,6 +59,7 @@ class ContinuousStateWeight(Weight):
                     self._add_features_(("node_state", int(k)), x)
             if pb is not None:
                 pb.update()
+        print('Leave _get_features_ in datasets/weights/continuous.py')
 
     def _get_weights_(self, network, states, pb=None):
         weights = np.zeros((states.shape[0], states.shape[1]))
@@ -79,6 +85,7 @@ class ContinuousStateWeight(Weight):
                 p_s = kde["total_state"].pdf(s_feats)
             else:
                 p_s = 1.0
+            #print('In continuous.py'); #pdb.set_trace()
             for j, ss in enumerate(s):
                 k = network.degree(j)
                 p_k = self.features[("degree", k)] / z
@@ -101,7 +108,7 @@ class ContinuousStateWeight(Weight):
         return weights
 
 
-class ContinuousGlobalStateWeight(ContinuousStateWeight):
+class ContinuousGlobalStateWeight(ContinuousStateWeight): #从datasets/continuous_dataset.py跳过来
     def _reduce_node_state_(self, index, states, network):
         return
 
