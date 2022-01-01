@@ -1,3 +1,9 @@
+# python run-covid-mine.py
+#  
+ 
+import setproctitle
+setproctitle.setproctitle("gnn-simu-vac@chenlin")
+
 import argparse
 import dynalearn
 import h5py
@@ -11,16 +17,24 @@ import pdb
 
 from os.path import exists, join
 
+###############################################################################
+# Main variable settings
+
+gen_code = 1
+MSA_NAME = 'SanFrancisco' #test #20211223
+
+###############################################################################
+# Functions
 
 def loading_covid_data(
-    experiment, path_to_covid, lag=1, lagstep=1, incidence=True, threshold=False
+    experiment, path_to_covid, gen_code=0, lag=1, lagstep=1, incidence=True, threshold=False
 ):
     if incidence:
         #dataset = h5py.File(os.path.join(path_to_covid, "spain-covid19cases.h5"), "r")
         print('path_to_covid: ', path_to_covid)
         #dataset = h5py.File(os.path.join(os.path.abspath('../..'),path_to_covid, "spain-covid19-dataset.h5"), "r") #20211221
-        MSA_NAME = 'SanFrancisco' #test #20211223
-        dataset = h5py.File(os.path.join(os.path.abspath('../..'),path_to_covid, "data_%s.h5"%(MSA_NAME)), "r") #20211223
+        #dataset = h5py.File(os.path.join(os.path.abspath('../..'),path_to_covid, "data_%s.h5"%(MSA_NAME)), "r") #20211223
+        dataset = h5py.File(os.path.join(os.path.abspath('../..'),path_to_covid, "data_%s_gencode%s.h5"%(MSA_NAME,str(gen_code))), "r") #20211223
         num_states = 1
     else:
         dataset = h5py.File(os.path.join(path_to_covid, "spain-covid19.h5"), "r")
@@ -72,7 +86,7 @@ def loading_covid_data(
     #return experiment #original
     return experiment,targets #20211229
 
-
+###############################################################################
 ## REQUIRED PARAMETERS
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -183,6 +197,9 @@ parser.add_argument(
     "--seed", type=int, metavar="SEED", help="Seed of the experiment.", default=-1
 )
 
+###############################################################################
+# Configurations
+
 args = parser.parse_args()
 
 if args.seed == -1:
@@ -259,6 +276,7 @@ _,target = loading_covid_data( #20211229
     args.path_to_covid,
     lag=args.lag,
     lagstep=args.lagstep,
+    gen_code=gen_code,
     incidence=bool(args.incidence),
 )
 experiment.model.nn.history.reset()

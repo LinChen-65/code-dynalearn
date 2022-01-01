@@ -1,5 +1,5 @@
-# python wrap-data.py MSA_NAME
-# python 
+# python wrap-data.py MSA_NAME gen_code
+# python wrap-data.py SanFrancisco 0
  
 import setproctitle
 setproctitle.setproctitle("gnn-simu-vac@chenlin")
@@ -30,13 +30,22 @@ gt_result_root = os.getcwd()
 MSA_NAME = sys.argv[1]; print('MSA_NAME: ',MSA_NAME) #MSA_NAME = 'SanFrancisco'
 MSA_NAME_FULL = constants.MSA_NAME_FULL_DICT[MSA_NAME] #MSA_NAME_FULL = 'San_Francisco_Oakland_Hayward_CA'
 
+gen_code = int(sys.argv[2])
+if(gen_code==0):
+    print('Generate data: synthetic CBG homogeneous network.')
+elif(gen_code==1):
+    print('Generate data: CBG-POI homogeneous network.')
+else:
+    print('Invalid gen_code. Please check.')
+    pdb.set_trace()
+
 ###############################################################################
 # Load and wrap data
 
 # Load epidemic result data
 NUM_SEEDS = 60
 cases_cbg_no_vaccination = np.load(os.path.join(gt_result_root, 'cases_cbg_no_vaccination_%s_%sseeds.npy' % (MSA_NAME, NUM_SEEDS)))
-print('shape of cbg daily cases: ', cases_cbg_no_vaccination.shape) #(63, 2943)
+print('shape of cbg daily cases: ', cases_cbg_no_vaccination.shape) #(num_days, num_cbgs)(63, 2943)
 num_days = cases_cbg_no_vaccination.shape[0]
 
 # Load POI-CBG visiting matrices
@@ -49,19 +58,30 @@ f.close()
 single_array = poi_cbg_visits_list[0]
 num_pois = single_array.todense().shape[0]
 num_cbgs = single_array.todense().shape[1]
+num_nodes = num_pois + num_cbgs
 #num_days = int(len(poi_cbg_visits_list)/24) #1512h/24h
 
 # Network attributes
-node_list = np.arange(num_cbgs)
-node_attr = np.ones(num_cbgs) #test
 #edge_list = np.append(np.reshape(np.nonzero(single_array)[0], (-1,1)),np.reshape(np.nonzero(single_array)[1], (-1,1)),axis=1)
-edge_list = np.append(np.random.permutation(np.reshape(np.nonzero(single_array)[1], (-1,1))),
-                      np.reshape(np.nonzero(single_array)[1], (-1,1)),axis=1) #test
-edge_attr = np.ones(len(edge_list))
+if(gen_code==0):
+    num_nodes = num_cbgs
+    node_list = np.arange(num_nodes)
+    node_attr = np.ones(num_nodes) #test
+    edge_list = np.append(np.random.permutation(np.reshape(np.nonzero(single_array)[1], (-1,1))),
+                          np.reshape(np.nonzero(single_array)[1], (-1,1)),axis=1) #test
+elif(gen_code==1):
+    cases_cbg_no_vaccination = np.concatenate((cases_cbg_no_vaccination, np.zeros((num_days,num_pois))), axis=1) #Set all poi ground truth as 0
+    node_list = np.arange(num_nodes)
+    node_attr = np.ones(num_nodes) #test
+    edge_list = np.append(np.reshape(np.nonzero(single_array)[0], (-1,1)),
+                          np.reshape(np.nonzero(single_array)[1]+num_cbgs, (-1,1)),axis=1)
+
+edge_attr = np.ones(len(edge_list)) #test
 
 
 # Wrap in hdf5 format
-data = h5py.File('data_%s.h5' % (MSA_NAME), 'w')
+#data = h5py.File('data_%s.h5' % (MSA_NAME), 'w')
+data = h5py.File('data_%s_gencode%s.h5' % (MSA_NAME, str(gen_code)), 'w')
 # Epidemic data
 data.create_dataset('timeseries', data=cases_cbg_no_vaccination)
 # Mobility network
@@ -95,8 +115,8 @@ data = {
     "targets": dynalearn.datasets.DataCollection(name="targets"),
     "networks": dynalearn.datasets.DataCollection(name="networks"),
 }
-inputs = np.zeros((num_days - (lag - 1) * lagstep, num_cbgs, num_states, lag))
-targets = np.zeros((num_days - (lag - 1) * lagstep, num_cbgs, num_states))
+inputs = np.zeros((num_days - (lag - 1) * lagstep, num_nodes, num_states, lag))
+targets = np.zeros((num_days - (lag - 1) * lagstep, num_nodes, num_states))
 X = cases_cbg_no_vaccination
 Y = cases_cbg_no_vaccination
 for t in range(inputs.shape[0]):

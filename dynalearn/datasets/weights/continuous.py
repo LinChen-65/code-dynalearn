@@ -38,6 +38,7 @@ class ContinuousStateWeight(Weight):
 
     def _get_features_(self, network, states, pb=None):
         print('Entered _get_features_ in datasets/weights/continuous.py')
+        pdb.set_trace()
         x = self._reduce_network_(network)
         if x is not None:
             self._add_features_("network", x)
