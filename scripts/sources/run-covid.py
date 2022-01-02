@@ -29,7 +29,12 @@ def loading_covid_data(
     X = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221 #[...]也可改成[()]
     Y = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221
     networks = dataset["weighted-multiplex/data/networks/d0/boat"] #20211226
-    pdb.set_trace() #remove_pdb_1227
+
+    # 他给的Spanish dataset里，node_attr/population为空。。 所以运行起来后一堆nan。这里暂时全部置1. 只需要运行一次 #20220101
+    #del networks['node_attr/population']
+	#networks['node_attr'].create_dataset('population', data=np.ones(52))
+
+
 
     data = {
         "inputs": dynalearn.datasets.DataCollection(name="inputs"),
@@ -48,10 +53,10 @@ def loading_covid_data(
         inputs[t] = x
         targets[t] = y
     
-    #pdb.set_trace() #remove_pdb_1227
     data["inputs"].add(dynalearn.datasets.StateData(data=inputs))
     data["targets"].add(dynalearn.datasets.StateData(data=targets))
     data["networks"].add(dynalearn.datasets.NetworkData(data=networks))
+
     #pop = data["networks"][0].data.node_attr["population"] #20211222注释掉,因为下文也没用到
     experiment.dataset.data = data
     experiment.test_dataset = experiment.dataset.partition(
@@ -177,13 +182,14 @@ args = parser.parse_args()
 if args.seed == -1:
     args.seed = int(time.time())
 
-config = dynalearn.config.ExperimentConfig.covid(
+config = dynalearn.config.ExperimentConfig.covid( #调用config/experiments.py
     args.name,
     args.path_to_data,
     args.path_to_best,
     args.path_to_summary,
     incidence=bool(args.incidence),
 )
+
 
 config.train_details.val_fraction = args.val_fraction
 config.train_details.val_bias = args.bias
@@ -250,7 +256,7 @@ _,target = loading_covid_data(
     lagstep=args.lagstep,
     incidence=bool(args.incidence),
 )
-pdb.set_trace()
+#pdb.set_trace()
 experiment.model.nn.history.reset()
 experiment.callbacks[0].current_best = np.inf
 experiment.train_model(save=False, restore_best=True) #调用experiments/experiment.py(166)train_model()

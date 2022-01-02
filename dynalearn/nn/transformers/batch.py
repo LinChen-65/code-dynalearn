@@ -29,7 +29,7 @@ class BatchNormalizer(TransformerDict):
         else:
             transformer_dict["t_targets"] = CUDATransformer()
 
-        transformer_dict["t_networks"] = NetworkNormalizer(
+        transformer_dict["t_networks"] = NetworkNormalizer( #转到nn/transformers/normalizer.py
             node_size, edge_size, layers=layers, auto_cuda=auto_cuda
         )
 

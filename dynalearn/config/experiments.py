@@ -139,10 +139,11 @@ class ExperimentConfig(Config):
             os.makedirs(path_to_summary)
 
         # class NetworkConfig is in dynalearn/config/networks.py
-        #cls.networks = NetworkConfig.mw_ba(num_nodes=52) #original
+        #cls.networks = NetworkConfig.mw_ba(num_nodes=52) #original, , weighted, multiplex
         #cls.networks = NetworkConfig.mw_ba(num_nodes=2943) #20211226, SanFrancisco 
-        #cls.networks = NetworkConfig.ba(num_nodes=52) #20211226, covid-Spanish
-        cls.networks = NetworkConfig.ba(num_nodes=2943) #20211228, SanFrancisco 
+        #cls.networks = NetworkConfig.ba(num_nodes=52) #20211226, covid-Spanish, not weighted, not multiplex
+        #cls.networks = NetworkConfig.ba(num_nodes=2943) #20211228, SanFrancisco 
+        cls.networks = NetworkConfig.w_ba(num_nodes=52) #20220101, covid-Spanish, weighted, not multiplex
         #pdb.set_trace() #remove_pdb_1227
         if incidence:
             cls.dynamics = DynamicsConfig.incsir()

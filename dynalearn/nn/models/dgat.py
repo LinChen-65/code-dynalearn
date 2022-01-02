@@ -152,7 +152,7 @@ class DynamicsGATConv(MessagePassing):
 
         if self.linear_edge is not None:
             assert edge_attr is not None
-            edge_attr = self.extra_linear_edge(edge_attr.squeeze()) #20211227
+            #edge_attr = self.extra_linear_edge(edge_attr.squeeze()) #20211227 #20220101去掉
             edge_attr = self.linear_edge(edge_attr).view(-1, H, self.edge_out_channels)#这里有bug:RuntimeError: mat1 dim 1 must match mat2 dim 0
             alpha_e = self.attn_edge(edge_attr)
 
@@ -179,8 +179,8 @@ class DynamicsGATConv(MessagePassing):
         # combining edge attributes with attention coefficients
         if self.linear_edge is not None:
             assert edge_attr is not None
-            #edge_attr = torch.cat([edge_attr, alpha.unsqueeze(-1)], axis=-1) #original
-            edge_attr = torch.cat([edge_attr, alpha.unsqueeze(-1)[0,:,:].unsqueeze(0)], axis=-1) #test #20211227
+            edge_attr = torch.cat([edge_attr, alpha.unsqueeze(-1)], axis=-1) #original #20220101
+            #edge_attr = torch.cat([edge_attr, alpha.unsqueeze(-1)[0,:,:].unsqueeze(0)], axis=-1) #test #20211227
             edge_attr = edge_attr.view(-1, H * (self.edge_out_channels + 1))
             out_edge = self.edge_combine(edge_attr).view(-1, H, self.edge_out_channels)
         else:

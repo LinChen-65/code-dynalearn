@@ -185,6 +185,8 @@ class EdgeNormalizer(Normalizer):
 
 class NetworkNormalizer(Transformer):
     def __init__(self, node_size, edge_size, layers=None, auto_cuda=True):
+        print('Entered NetworkNormalizer.__init__() in nn/transformers/normalizer.py')
+        #pdb.set_trace()
         Transformer.__init__(self, "networks")
         self.node_size = node_size
         self.edge_size = edge_size
@@ -202,6 +204,7 @@ class NetworkNormalizer(Transformer):
         else:
             setattr(self, "t_nodeattr", NodeNormalizer(size=node_size))
             setattr(self, "t_edgeattr", EdgeNormalizer(size=edge_size))
+        print('Leave NetworkNormalizer.__init__() in nn/transformers/normalizer.py')
 
     def setUp(self, dataset):
 
@@ -244,7 +247,8 @@ class NetworkNormalizer(Transformer):
             g = g.collapse(layer)
         edge_index = self.t_cuda.forward(torch.LongTensor(g.edges.T))
         #pdb.set_trace() #remove_pdb_1227
-        node_attr = getattr(self, n_key).forward(torch.Tensor(g.get_node_data()))
+        #node_attr = getattr(self, n_key).forward(torch.Tensor(g.get_node_data())) #original
+        node_attr = torch.Tensor(g.get_node_data()).cuda() #20220101 #应该只要.cuda()就行
         edge_attr = getattr(self, e_key).forward(torch.Tensor(g.get_edge_data()))
         if edge_attr.numel() == 0:
             edge_attr = None

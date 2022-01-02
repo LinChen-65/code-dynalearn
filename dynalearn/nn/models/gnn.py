@@ -79,7 +79,7 @@ class GraphNeuralNetwork(Model):
         else:
             input_size = 0
             target_size = 0
-        self.transformers = BatchNormalizer(
+        self.transformers = BatchNormalizer( #转到nn/transformers/batch.py
             input_size=input_size,
             target_size=target_size,
             edge_size=edgeattr_size,
@@ -92,16 +92,19 @@ class GraphNeuralNetwork(Model):
         if torch.cuda.is_available():
             self = self.cuda()
         print('Leave GraphNeuralNetwork.__init__()') #回到/nn/models/incidence.py(37)__init__()
+        #pdb.set_trace()
 
     def forward(self, x, network_attr):
         #pdb.set_trace() #remove_pdb_1227 #add_pdb_1228 #remove_pdb_1228
         edge_index, edge_attr, node_attr = network_attr
-        x = self.in_layers(x) #x从[52,1]变成[52,16]
-        node_attr = self.node_layers(node_attr) #node_attr不变，前后都是[52,1]
-        edge_attr = self.edge_layers(edge_attr) #edge_attr不变，前后都是[467,1]
+        x = self.in_layers(x) #in_layers是RNN layer，(1, 16) #x从[52,1]变成[52,16]
+        node_attr = self.node_layers(node_attr) #node_attr从[52,1]变成[52,4]
+        edge_attr = self.edge_layers(edge_attr) #edge_attr从[467,1]变成[467,8]
 
         #x = self.merge_nodeattr(x, node_attr) #original
-        x = x #20211227
+        #x = x #20211227
+        x = self.merge_nodeattr(x, node_attr) #20220101 #
+
         if self.config.gnn_name == "DynamicsGATConv":
             # nn/models/dgat.py/class DynamicsGATConv(MessagePassing)的def forward <== self.gnn_layer = get_gnn_layer(self.config) <== from dynalearn.nn.models.getter import get as get_gnn_layer
             x = self.gnn_layer(x, edge_index, edge_attr=edge_attr) #这里有bug, 20211227 #已解决, 20211227

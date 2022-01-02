@@ -46,7 +46,7 @@ else:
 NUM_SEEDS = 60
 cases_cbg_no_vaccination = np.load(os.path.join(gt_result_root, 'cases_cbg_no_vaccination_%s_%sseeds.npy' % (MSA_NAME, NUM_SEEDS)))
 print('shape of cbg daily cases: ', cases_cbg_no_vaccination.shape) #(num_days, num_cbgs)(63, 2943)
-num_days = cases_cbg_no_vaccination.shape[0]
+num_days = cases_cbg_no_vaccination.shape[0]; print('num_days: ', num_days)
 
 # Load POI-CBG visiting matrices
 #MSA_NAME_FULL = constants.MSA_NAME_FULL_DICT[args.MSA_NAME] #'San_Francisco_Oakland_Hayward_CA'
@@ -55,11 +55,26 @@ poi_cbg_visits_list = pickle.load(f)
 f.close()
 
 # Get one timestep's data for test 
-single_array = poi_cbg_visits_list[0]
-num_pois = single_array.todense().shape[0]
-num_cbgs = single_array.todense().shape[1]
-num_nodes = num_pois + num_cbgs
+single_array = poi_cbg_visits_list[0].todense()
+num_pois = single_array.shape[0]; print('num_pois: ', num_pois)
+num_cbgs = single_array.shape[1]; print('num_cbgs: ', num_cbgs)
+num_nodes = num_pois + num_cbgs; print('num_nodes (cbg+poi): ', num_nodes)
 #num_days = int(len(poi_cbg_visits_list)/24) #1512h/24h
+
+
+# Average all arrays
+num_hours = len(poi_cbg_visits_list); print('num_hours: ', num_hours)
+avg_array_path = os.path.join(gt_result_root, 'avg_array_%s.npy' % MSA_NAME)
+if(os.path.exists(avg_array_path)):
+    avg_array = np.load(avg_array_path)
+else:
+    avg_array = np.zeros(poi_cbg_visits_list[0].shape)
+    for i in range(num_hours):
+        if(i%50==0):print(i)
+        avg_array += poi_cbg_visits_list[i]
+    avg_array /= num_hours
+    np.save(avg_array_path, avg_array)
+pdb.set_trace()
 
 # Network attributes
 #edge_list = np.append(np.reshape(np.nonzero(single_array)[0], (-1,1)),np.reshape(np.nonzero(single_array)[1], (-1,1)),axis=1)
@@ -67,14 +82,16 @@ if(gen_code==0):
     num_nodes = num_cbgs
     node_list = np.arange(num_nodes)
     node_attr = np.ones(num_nodes) #test
-    edge_list = np.append(np.random.permutation(np.reshape(np.nonzero(single_array)[1], (-1,1))),
-                          np.reshape(np.nonzero(single_array)[1], (-1,1)),axis=1) #test
+    #edge_list = np.append(np.random.permutation(np.reshape(np.nonzero(single_array)[1], (-1,1))),
+    #                      np.reshape(np.nonzero(single_array)[1], (-1,1)),axis=1) #test
+    edge_list = np.append(np.random.permutation(np.reshape(np.nonzero(avg_array)[1], (-1,1))),
+                          np.reshape(np.nonzero(avg_array)[1], (-1,1)),axis=1) #20220101
 elif(gen_code==1):
     cases_cbg_no_vaccination = np.concatenate((cases_cbg_no_vaccination, np.zeros((num_days,num_pois))), axis=1) #Set all poi ground truth as 0
     node_list = np.arange(num_nodes)
     node_attr = np.ones(num_nodes) #test
-    edge_list = np.append(np.reshape(np.nonzero(single_array)[0], (-1,1)),
-                          np.reshape(np.nonzero(single_array)[1]+num_cbgs, (-1,1)),axis=1)
+    edge_list = np.append(np.reshape(np.nonzero(avg_array)[0], (-1,1)),
+                          np.reshape(np.nonzero(avg_array)[1]+num_cbgs, (-1,1)),axis=1)
 
 edge_attr = np.ones(len(edge_list)) #test
 
