@@ -172,12 +172,12 @@ class Dataset:
         self.verbose = experiment.verbose
         return experiment.train_details
 
-    def to_batch(self, size):
+    def to_batch(self, size): 
         sourceiter = iter(self)
         while True:
             if (
                 self.sampler.counter < len(self)
-                and len(self.sampler.avail_networks) > 0
+                and len(self.sampler.avail_networks) > 0 #调用datasets/sampler.py
             ):
                 batchiter = islice(sourceiter, size)
                 yield chain([next(batchiter)], batchiter)

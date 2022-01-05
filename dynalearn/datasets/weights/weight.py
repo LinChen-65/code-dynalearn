@@ -72,13 +72,15 @@ class Weight(DataCollection):
         #pdb.set_trace()
         weights = []
         for i in range(dataset.networks.size):
+            #if(i%1000==0):print('***',i,'***')
             x = dataset.inputs[i].data
             g = dataset.networks[i].data
             if isinstance(g, MultiplexNetwork):
                 g = g.collapse()
             self.check_network(g)
             self.check_state(x)
-            w = self._get_weights_(g, x, pb=pb) ** (-self.bias)
+            #w = self._get_weights_(g, x, pb=pb) ** (-self.bias) #original #如果self.bias=0，则所有weight又都变回了1，等权重
+            w = self._get_weights_(g, x, pb=pb) 
             weights = StateData(data=w)
             self.add(weights)
         print('Leave compute_weights() in datasets/weights/weight.py.');print('Time: ', time.time()-start)
@@ -107,6 +109,7 @@ class Weight(DataCollection):
 
     def to_state_weights(self):
         state_weights = DataCollection()
+        #pdb.set_trace()
         for i in range(self.size):
             w = self.data_list[i].data.sum(-1)
             state_weights.add(StateData(data=w))

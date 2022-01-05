@@ -51,7 +51,7 @@ class ContinuousStateWeightDataset(ContinuousDataset):
     def _get_weights_(self):
         print('Enter _get_weights_() in continuous_dataset.py')#; pdb.set_trace()
         if self.total: #True
-            if self.m_networks.is_weighted: #False
+            if self.m_networks.is_weighted: 
                 weights = StrengthContinuousGlobalStateWeight(
                     reduce=self.reduce, bias=self.bias
                 )
@@ -60,9 +60,9 @@ class ContinuousStateWeightDataset(ContinuousDataset):
                     reduce=self.reduce, bias=self.bias
                 ) # 这个很快，不耗时
         else:
-            if self.m_networks.is_weighted and self.compounded:
+            if self.m_networks.is_weighted and self.compounded: #进入这里, 20220104
                 weights = StrengthContinuousCompoundStateWeight(
-                    reduce=self.reduce, bias=self.bias
+                    reduce=self.reduce, bias=self.bias #False, 1.0
                 )
             elif self.m_networks.is_weighted and not self.compounded:
                 weights = StrengthContinuousStateWeight(

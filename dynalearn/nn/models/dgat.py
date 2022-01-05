@@ -59,7 +59,7 @@ class DynamicsGATConv(MessagePassing):
             #test = 467 #test #20211227 #edge_attr.shape[0]
             #self.linear_edge = nn.Sequential(nn.Linear(test,8),nn.Linear(8, 8, bias=True))#202112227
             #self.extra_linear_edge = nn.Linear(467,8) #20211227, covid-Spanish
-            self.extra_linear_edge = nn.Linear(32207,8) #20211228, SanFrancisco
+            #self.extra_linear_edge = nn.Linear(32207,8) #20211228, SanFrancisco
             self.edge_combine = nn.Linear(
                 (edge_out_channels + 1) * heads,
                 edge_out_channels * heads,
@@ -98,8 +98,8 @@ class DynamicsGATConv(MessagePassing):
             zeros(self.linear_edge.bias)
             glorot(self.edge_combine.weight)
             zeros(self.edge_combine.bias)
-            glorot(self.extra_linear_edge.weight)#20211227
-            zeros(self.extra_linear_edge.bias)#20211227
+            #glorot(self.extra_linear_edge.weight)#20211227
+            #zeros(self.extra_linear_edge.bias)#20211227
             self.attn_edge.reset_parameters()
 
         self.attn_source.reset_parameters()

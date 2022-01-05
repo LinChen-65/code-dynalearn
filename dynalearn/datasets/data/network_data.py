@@ -104,11 +104,10 @@ class NetworkData(Data):
     def _load_graph_(self, h5file):
         
         def load_g(h5group):
-            print('Entered load_g() function.')
-            
+            print('Entered load_g() function in datasets/data/network_data.py.')
+            #pdb.set_trace() 
             node_list = h5group["node_list"][...]
             edge_list = h5group["edge_list"][...]
-            #pdb.set_trace() 
 
             g = nx.DiGraph()
             g.add_nodes_from(node_list)
@@ -124,10 +123,11 @@ class NetworkData(Data):
                 #for k, v in h5group["edge_attr"].items(): #test #20211222 #need to load population.data manually
                 for k, v in h5group["node_attr"].items(): #original   
                     #node_attr[k] = v #original
-                    node_attr[k] = np.ones(len(node_list)) #test #20211222
+                    #node_attr[k] = np.ones(len(node_list)) #test #20211222
+                    node_attr[k] = v[()] #20220102
                     #pdb.set_trace()
                 g = set_node_attr(g, node_attr)
-            print('Left load_g() function.')
+            print('Left load_g() function in datasets/data/network_data.py.')
             return g
 
         if "edge_list" in h5file:

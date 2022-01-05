@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from torch.optim.optimizer import Optimizer, required
 
+import pdb
 
 class RAdam(Optimizer):
     def __init__(
@@ -47,7 +48,7 @@ class RAdam(Optimizer):
         super(RAdam, self).__setstate__(state)
 
     def step(self, closure=None):
-
+        #pdb.set_trace()
         loss = None
         if closure is not None:
             loss = closure()

@@ -63,6 +63,7 @@ class Model(nn.Module):
         for i in range(epochs):
             callbacks.on_epoch_begin(self.history.epoch)
             t0 = time.time()
+            #pdb.set_trace()
             self._do_epoch_(
                 dataset, batch_size=batch_size, callbacks=callbacks, verbose=verbose
             )
@@ -97,7 +98,8 @@ class Model(nn.Module):
         pb = verbose.progress_bar("Epoch %d" % (epoch), num_updates)
 
         self.train()
-        for batch in dataset.to_batch(batch_size):
+        for batch in dataset.to_batch(batch_size): #调用datasets/dataset.py的to_batch()->调用datasets/sampler.py
+            #pdb.set_trace()
             self.optimizer.zero_grad()
 
             callbacks.on_batch_begin(self.history.batch)
@@ -113,7 +115,7 @@ class Model(nn.Module):
             loss.backward()
             callbacks.on_backward_end(self.history.batch)
 
-            self.optimizer.step()
+            self.optimizer.step() #20220103 #这一句后出现nan #部分p.grad=NaN
             callbacks.on_batch_end(self.history.batch, logs)
             if pb is not None:
                 pb.set_description(f"Epoch {epoch} loss: {loss:.4f}")
@@ -131,11 +133,17 @@ class Model(nn.Module):
         num_samples = 0
         for data in batch:
             y_true, y_pred, w = self.prepare_output(data)
+            #loss += self.loss(y_true, y_pred, w) #original
+            num_cbgs = 20 #test
+            #loss += self.loss(y_true[:num_cbgs], y_pred[:num_cbgs], w[:num_cbgs]) #mask: only compute cbg losses #method1, fail #20220103
+            y_true[num_cbgs:] = 0 #method2 #20220103
+            y_pred[num_cbgs:] = 0
             loss += self.loss(y_true, y_pred, w)
             num_samples += 1
         return loss / num_samples
 
     def evaluate(self, dataset, metrics={}, name=None, verbose=Verbose()):
+        #pdb.set_trace()
         if name is not None:
             prefix = name + "_"
         else:
@@ -172,6 +180,7 @@ class Model(nn.Module):
         return logs
 
     def prepare_output(self, data):
+        #pdb.set_trace()
         data = self.transformers.forward(data)
         (x, g), y, w = data
         y_true = y

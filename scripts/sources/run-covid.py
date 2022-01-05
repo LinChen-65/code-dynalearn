@@ -11,6 +11,8 @@ import pdb
 
 from os.path import exists, join
 
+import setproctitle
+setproctitle.setproctitle("gnn-simu-vac@chenlin")
 
 def loading_covid_data(
     experiment, path_to_covid, lag=1, lagstep=1, incidence=True, threshold=False

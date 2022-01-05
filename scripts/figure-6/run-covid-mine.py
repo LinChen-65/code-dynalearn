@@ -25,7 +25,8 @@ config = {
     ],
     "lag": [5],
     #"bias": [0.0, 0.25, 0.5, 0.75, 1.0], #original
-    "bias": [0.0], #20211228
+    #"bias": [0.0], #20211228
+    "bias": [1], #20220103
     "val_fraction": 0.1,
 }
 launch_scan(

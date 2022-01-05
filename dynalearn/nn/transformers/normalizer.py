@@ -43,6 +43,8 @@ class Normalizer(Transformer):
         raise NotImplemented()
 
     def forward(self, x):
+        #print('Entered Normalizer.forward() in nn/transformers/normalizer.py.') #20220104
+        #pdb.set_trace()
         if isinstance(x, np.ndarray):
             x = torch.Tensor(x)
         x = self.cuda_transformer.forward(x)
@@ -51,7 +53,8 @@ class Normalizer(Transformer):
         if self.is_empty:
             y = x
         else:
-            y = (x - m) / v ** (0.5)
+            y = (x - m) / v ** (0.5) #这里中心化了，所以有些y_true的值小于0
+        #print('Leave Normalizer.forward() in nn/transformers/normalizer.py.') #20220104
         return self.cuda_transformer.forward(y)
 
     def backward(self, x):
@@ -185,7 +188,7 @@ class EdgeNormalizer(Normalizer):
 
 class NetworkNormalizer(Transformer):
     def __init__(self, node_size, edge_size, layers=None, auto_cuda=True):
-        print('Entered NetworkNormalizer.__init__() in nn/transformers/normalizer.py')
+        #print('Entered NetworkNormalizer.__init__() in nn/transformers/normalizer.py') #20220104
         #pdb.set_trace()
         Transformer.__init__(self, "networks")
         self.node_size = node_size
@@ -204,7 +207,7 @@ class NetworkNormalizer(Transformer):
         else:
             setattr(self, "t_nodeattr", NodeNormalizer(size=node_size))
             setattr(self, "t_edgeattr", EdgeNormalizer(size=edge_size))
-        print('Leave NetworkNormalizer.__init__() in nn/transformers/normalizer.py')
+        #print('Leave NetworkNormalizer.__init__() in nn/transformers/normalizer.py') #20220104
 
     def setUp(self, dataset):
 

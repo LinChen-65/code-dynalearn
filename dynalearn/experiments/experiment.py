@@ -31,6 +31,7 @@ class Experiment:
     def __init__(self, config, verbose=Verbose()):
         self.config = config
         self.name = config.name
+        #pdb.set_trace()
 
         # Main objects
         if "modes" not in config.dataset.__dict__:
@@ -127,6 +128,7 @@ class Experiment:
     # Run command
     def run(self, tasks=None):
         tasks = tasks or self.__tasks__
+        print('tasks: ', tasks); pdb.set_trace()
 
         self.begin()
         self.save_config()
@@ -245,15 +247,17 @@ class Experiment:
         zip.close()
 
     def save(self, label_with_mode=True):
-
+        print('Entered save() in experiments/experiment/py.')
         self.save_config()
         self.save_data(label_with_mode=label_with_mode)
         self.save_model(label_with_mode=label_with_mode)
         self.save_metrics(label_with_mode=label_with_mode)
         with open(join(self.path_to_data, self.fname_logger), "w") as f:
             self.loggers.save(f)
+        print('Leave save() in experiments/experiment/py.')
 
     def load(self, label_with_mode=True):
+        print('Entered load() in experiments/experiment/py.')
         try:
             self.load_config()
         except:
@@ -278,6 +282,7 @@ class Experiment:
             if self.loggers is not None:
                 with open(join(self.path_to_data, self.fname_logger), "r") as f:
                     self.loggers.load(f)
+        print('Leave load() in experiments/experiment/py.')
 
     # Other methods
     def partition_dataset(self, fraction=0.1, bias=0.0, name="val"):
@@ -322,7 +327,11 @@ class Experiment:
             os.remove(p)
 
     def save_data(self, label_with_mode=True):
-        with h5py.File(join(self.path_to_data, self.fname_data), "w") as f:
+        print('Entered save_data() in experiments/experiment.py.')
+        print('path to save data: ', join(self.path_to_data, self.fname_data)) #path是在scripts/figure-6/之下（与scripts/figure-6/run-covid-mine.py同父目录）
+        #pdb.set_trace()
+        #with h5py.File(join(self.path_to_data, self.fnamee_data), "w") as f: #original, 坑爹笔误
+        with h5py.File(join(self.path_to_data, self.fname_data), "w") as f: #20220104
             if label_with_mode:
                 for mode in self.all_modes:
                     self._dataset[mode].save(f, name=f"{mode}-train")
@@ -336,6 +345,8 @@ class Experiment:
                     self._val_dataset[self.mode].save(f, name="val")
                 if self.mode in self._test_dataset:
                     self._test_dataset[self.mode].save(f, name="test")
+        print('data successfully saved.')
+        print('Leave save_data() in experiments/experiment.py.')
 
     def save_model(self, label_with_mode=True):
 
@@ -377,9 +388,13 @@ class Experiment:
             pickle.dump(self.config, f)
 
     def load_data(self, label_with_mode=True):
+        print('Entered load_data() in experiments/experimentpy.')
+        pdb.set_trace()
         if exists(join(self.path_to_data, self.fname_data)):
+            print('data already exists. directly load.')
             with h5py.File(join(self.path_to_data, self.fname_data), "r") as f:
                 for k, v in f.items():
+                    pdb.set_trace()
                     if label_with_mode:
                         mode, name = k.split("-")
                     else:
@@ -401,8 +416,10 @@ class Experiment:
                         self._test_dataset[mode].load(v)
                     else:
                         raise ValueError(f"Invalid name `{name}` while loading data.")
+            return True
         else:
             self.verbose("Loading data: Did not find data to load.")
+            return False
 
     def load_model(self, restore_best=True, label_with_mode=True):
         # loading history

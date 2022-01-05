@@ -1,6 +1,7 @@
 import networkx as nx
 import numpy as np
 
+import pdb
 
 class Sampler:
     def __init__(self, dataset):
@@ -44,9 +45,12 @@ class Sampler:
         index = np.random.choice(self.avail_networks, p=p)
         return index
 
-    def _get_state_(self, g_index):
+    def _get_state_(self, g_index): #sample a time step
+        #print('Entered _get_state_() in datasets/sampler.py.')
+        #pdb.set_trace()
         indices = self.avail_states[g_index]
         p = self.dataset.state_weights[g_index].data[indices]
         p /= p.sum()
         index = np.random.choice(indices, p=p)
+        #print('Leave _get_state_() in datasets/sampler.py.')
         return index
