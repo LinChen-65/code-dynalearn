@@ -84,7 +84,7 @@ class Dataset:
                 f"`{type}` is invalid, valid entries are `['random', 'cleancut']`."
             )
 
-    def random_partition(self, fraction=0.1, bias=0, pb=None):
+    def random_partition(self, fraction=0.1, bias=0, pb=None): #self是experiment.dataset
         dataset = type(self)(self.config)
         dataset._data = self._data
         if self.use_transformed:
@@ -265,8 +265,8 @@ class Dataset:
     def weights(self, weights):
         assert isinstance(weights, DataCollection)
         self._weights = weights
-        self._state_weights = weights.to_state_weights()
-        self._network_weights = weights.to_network_weights()
+        self._state_weights = weights.to_state_weights() #调用datasets/weights/weight.py的to_state_weights() #对每个timestep的每个node的权重求和，作为timestep的权重
+        self._network_weights = weights.to_network_weights() #调用datasets/weights/weight.py的to_network_weights() 
 
     @property
     def indices(self):

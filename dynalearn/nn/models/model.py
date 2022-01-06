@@ -162,7 +162,7 @@ class Model(nn.Module):
 
         norm = 0.0
         for data in dataset:
-            y_true, y_pred, w = self.prepare_output(data)
+            y_true, y_pred, w = self.prepare_output(data) #这是怎么从data里把w拿出来的？
             z = w.sum().cpu().detach().numpy()
             norm += z
             for m in metrics:
@@ -181,7 +181,7 @@ class Model(nn.Module):
 
     def prepare_output(self, data):
         #pdb.set_trace()
-        data = self.transformers.forward(data)
+        data = self.transformers.forward(data) #这是怎么从data里把w拿出来的？
         (x, g), y, w = data
         y_true = y
         y_pred = self.forward(x, g) #这里有bug: RuntimeError: mat1 dim 1 must match mat2 dim 0 #这里的forward调用gnn.py的def forward(self, x, network_attr)

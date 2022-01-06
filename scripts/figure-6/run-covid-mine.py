@@ -1,3 +1,7 @@
+#
+import setproctitle
+setproctitle.setproctitle("gnn-simu-vac@chenlin")
+
 import os
 import json
 import sys
@@ -15,7 +19,7 @@ config = {
     "name": name,
     "path_to_covid": specs["path_to_data"],
     #"epochs": 200, #original
-    "epochs": 4, #20211228
+    "epochs": 10, #20220105
     "type": ["rnn"],
     "model": [
         "DynamicsGATConv",
@@ -27,7 +31,9 @@ config = {
     #"bias": [0.0, 0.25, 0.5, 0.75, 1.0], #original
     #"bias": [0.0], #20211228
     "bias": [1], #20220103
-    "val_fraction": 0.1,
+    #"val_fraction": 0.1, #original
+    "val_fraction": 0.01, #20220105
+    "gen_code": int(sys.argv[1]), #20220105, 控制读入的dataset (含义见gt_generator/wrap_data.py)
 }
 launch_scan(
     name,

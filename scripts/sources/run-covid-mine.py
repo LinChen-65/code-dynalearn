@@ -101,13 +101,13 @@ def loading_covid_data(
         experiment.dataset.data = data #This line uses time: 425.95s #experiment.dataset.data['inputs'].data_list[0].data.shape:(59, 52, 1, 5)
         print('This line uses time: ',time.time()-start); start = time.time()
         
-        experiment.test_dataset = experiment.dataset.partition(
+        experiment.test_dataset = experiment.dataset.partition( #这个会改变weights
             type="cleancut", 
             #ti=335, #original
             ti=50,
             tf=-1
         ) #This line uses time: 0.002s
-        experiment.partition_val_dataset() #This line uses time: 0.015s
+        experiment.partition_val_dataset() #This line uses time: 0.015s #这个会改变weights
         
    
     #return experiment #original
@@ -180,7 +180,7 @@ parser.add_argument(
     default=0.5,
 )
 parser.add_argument(
-    "--val_fraction",
+    "--val_fraction", #在figure-6/run-covid-mine.py设置了"val_fraction": 0.1
     type=float,
     metavar="VAL_FRACTION",
     help="Size of the validation dataset relative to the complete dataset.",
@@ -224,11 +224,16 @@ parser.add_argument(
 parser.add_argument(
     "--seed", type=int, metavar="SEED", help="Seed of the experiment.", default=-1
 )
+parser.add_argument( #20220105
+    "--gen_code", type=int, metavar="GEN_CODE", help="Type of dataset.", default=1
+)
 
 ###############################################################################
 # Configurations
 
 args = parser.parse_args()
+
+print('Gen code: ', args.gen_code) #20220105
 
 if args.seed == -1:
     args.seed = int(time.time())
@@ -242,7 +247,7 @@ config = dynalearn.config.ExperimentConfig.covid(
 )
 
 
-config.train_details.val_fraction = args.val_fraction
+config.train_details.val_fraction = args.val_fraction #在figure-6/run-covid-mine.py设置val_fraction
 config.train_details.val_bias = args.bias
 config.dataset.bias = args.bias
 config.model.lag = args.lag
@@ -260,7 +265,7 @@ elif args.model == "Kapoor2020":
     config.model.optimizer.lr = 1e-5
     config.model.optimizer.weight_decay = 5e-4
 config.model.type = args.type
-config.train_details.epochs = args.epochs
+config.train_details.epochs = args.epochs #在figure-6/run-covid-mine.py设置epochs
 config.train_metrics = []
 '''
 #original

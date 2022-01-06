@@ -48,6 +48,7 @@ class Weight(DataCollection):
         self.clear()
         if pb is not None:
             pb.close()
+        #返回到datasets/dataset.py的weights()
 
     def setUp(self, dataset):
         self.num_updates = 2 * dataset.networks.size
@@ -69,7 +70,7 @@ class Weight(DataCollection):
 
     def compute_weights(self, dataset, pb=None):
         print('Entered compute_weights() in datasets/weights/weight.py.');start=time.time()
-        #pdb.set_trace()
+        pdb.set_trace()
         weights = []
         for i in range(dataset.networks.size):
             #if(i%1000==0):print('***',i,'***')
@@ -80,10 +81,11 @@ class Weight(DataCollection):
             self.check_network(g)
             self.check_state(x)
             #w = self._get_weights_(g, x, pb=pb) ** (-self.bias) #original #如果self.bias=0，则所有weight又都变回了1，等权重
-            w = self._get_weights_(g, x, pb=pb) 
+            w = self._get_weights_(g, x, pb=pb) #调用datasets/weights/continuous.py的_get_weights_() 
             weights = StateData(data=w)
-            self.add(weights)
+            self.add(weights) #self: datasets.weights.continuous.StrengthContinuousGlobalStateWeight object, 继承datasets/data/data.py的class DataCollection的add()方法，把weights加入self.data_list中
         print('Leave compute_weights() in datasets/weights/weight.py.');print('Time: ', time.time()-start)
+        #返回到本文件的compute()
         #pdb.set_trace()
 
     def _add_features_(self, key, value=None):

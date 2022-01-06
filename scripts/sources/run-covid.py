@@ -60,7 +60,7 @@ def loading_covid_data(
     data["networks"].add(dynalearn.datasets.NetworkData(data=networks))
 
     #pop = data["networks"][0].data.node_attr["population"] #20211222注释掉,因为下文也没用到
-    experiment.dataset.data = data
+    experiment.dataset.data = data #到这一步，样本weights还和我输入的一样（CBG全1，POI全0）
     experiment.test_dataset = experiment.dataset.partition(
         type="cleancut", ti=335, tf=-1
     )

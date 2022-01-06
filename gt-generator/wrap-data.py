@@ -156,12 +156,18 @@ elif(gen_code==3):
     
 
 # test attr data: 保证每个节点、每条边都有attr
-node_attr = np.ones(num_nodes) #test
+#node_attr = np.ones(num_nodes) #test
+node_attr = np.append(cbg_sizes.copy(), np.random.random(num_nodes-num_cbgs)*10) #0~10均匀抽样
+print('mean and var of node_attr: ', np.mean(node_attr), np.var(node_attr)) 
 #edge_attr = np.ones(len(edge_list)) #test #不行，edge_attr标准差为0，后面归一化时出现除以0的错误，导致出现nan #20220104
 num_edges = len(edge_list)
 edge_attr = np.zeros(num_edges, dtype='float32')
-for i in range(num_edges):
-    edge_attr[i] = avg_array[edge_list[i][0], edge_list[i][1]] #20220104
+if(gen_code==1 or gen_code==2):
+    for i in range(num_edges):
+        edge_attr[i] = avg_array[edge_list[i][0]-num_cbgs, edge_list[i][1]]
+elif(gen_code==3):
+    for i in range(num_edges):
+        edge_attr[i] = avg_array[edge_list[i][0], edge_list[i][1]] #20220104
 print('mean and var of edge_attr: ', np.mean(edge_attr), np.var(edge_attr))
 pdb.set_trace()
 '''

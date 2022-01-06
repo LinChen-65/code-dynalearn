@@ -140,7 +140,7 @@ class ContinuousStateWeight(Weight): #继承了Weight类的_add_features_()方�
             #if pb is not None:
             #    pb.update()
         '''
-        return weights
+        return weights #回到datasets/weights/weight.py的compute_weights()
 
 
 class ContinuousGlobalStateWeight(ContinuousStateWeight): #从datasets/continuous_dataset.py跳过来
