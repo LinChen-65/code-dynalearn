@@ -48,11 +48,11 @@ class SimpleIncSIR(SimpleDSIR):
         self.latent_state[:, 0] -= x / self.population
         self.latent_state[:, 1] += x / self.population
         p = super().predict(self.latent_state)
-        self.latent_state = p * 1
+        self.latent_state = p * 1 #调用dynamics/deterministic_epidemics/base.py(98)predict()
         current_i = self.latent_state[:, 1]
         future_i = p[:, 1] * self.population
         y = (future_i - current_i).reshape(-1, 1)
-        return y
+        return y #返回dynamics/deterministic_epidemics/base.py(101)sample()
 
 
 class WeightedIncSIR(SimpleIncSIR, WeightedDSIR):

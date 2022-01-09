@@ -8,6 +8,8 @@ from .kde import KernelDensityEstimator
 import pdb
 import time
 
+NUM_CBGS = 2943 #temporary; 20 for Spanish, 2943 for SanFrancisco
+
 class ContinuousStateWeight(Weight): #继承了Weight类的_add_features_()方法
     def __init__(self, name="weights", reduce=True, bias=1.0):
         self.reduce = reduce
@@ -43,7 +45,7 @@ class ContinuousStateWeight(Weight): #继承了Weight类的_add_features_()方�
             self._add_features_("network", x)
         start = time.time()
         for i in network.nodes: #30000个节点，用时约372s
-            if(i%5000==0): print(i)
+            #if(i%5000==0): print(i)
             k = network.degree(i)
             self._add_features_(("degree", int(k)))
             x = self._reduce_node_(i, network) #StrengthContinuousGlobalStateWeight._reduce_node_()
@@ -53,7 +55,7 @@ class ContinuousStateWeight(Weight): #继承了Weight类的_add_features_()方�
         #pdb.set_trace()
 
         start = time.time()
-        num_cbgs = 2943 #20 #2943 #test
+        num_cbgs = NUM_CBGS #20 #2943 #test
         sub_states = states[:,:num_cbgs,:,:]
         #for i, s in enumerate(states): #s:即x，即一段历史infection(5天) #i: num_days (Spanish:446) #states.shape:(446, 52, 1, 5)
         for i, s in enumerate(sub_states): #s:即x，即一段历史infection(5天) #i: num_days (Spanish:446) #states.shape:(446, 52, 1, 5)
@@ -63,7 +65,7 @@ class ContinuousStateWeight(Weight): #继承了Weight类的_add_features_()方�
                 self._add_features_("total_state", y) #所有节点总感染
             for j, ss in enumerate(s): #len([j for j, ss in enumerate(s)]) = num_nodes #s.shape:(31656, 1, 5)
                 # 这个loop非常耗时！！！
-                if(j%5000==0):print(j)
+                #if(j%5000==0):print(j)
                 k = network.degree(j)
                 x = self._reduce_node_state_(j, s, network) #does nothing (而且self.reduce==False)
                 if x is not None:
@@ -90,7 +92,7 @@ class ContinuousStateWeight(Weight): #继承了Weight类的_add_features_()方�
     def _get_weights_(self, network, states, pb=None): #应该是根据sampled node的feature稀有程度，计算importance weight (所以用了核密度估计)
         #weights = np.ones((states.shape[0], states.shape[1])) #sampler里有归一化，故这里不用归一化 #test
         num_nodes = states.shape[1]
-        num_cbgs = 2943 #20 #2943 #test
+        num_cbgs = NUM_CBGS #20 #2943 #test
         print('num_nodes: ', num_nodes, ', num_cbgs: ', num_cbgs)
         weights = np.tile(np.concatenate((np.ones(num_cbgs), np.zeros(num_nodes-num_cbgs)), axis=0), (states.shape[0],1))
         pdb.set_trace()

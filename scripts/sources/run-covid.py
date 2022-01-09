@@ -14,7 +14,8 @@ from os.path import exists, join
 import setproctitle
 setproctitle.setproctitle("gnn-simu-vac@chenlin")
 
-def loading_covid_data(
+# return ground truth (targets)
+def loading_prediction_targets(
     experiment, path_to_covid, lag=1, lagstep=1, incidence=True, threshold=False
 ):
     if incidence:
@@ -25,48 +26,95 @@ def loading_covid_data(
     else:
         dataset = h5py.File(os.path.join(path_to_covid, "spain-covid19.h5"), "r")
         num_states = 3
-    #X = dataset["weighted-multiplex/data/inputs/d0"][...]
-    #Y = dataset["weighted-multiplex/data/targets/d0"][...]
-    #networks = dataset["weighted-multiplex/data/networks/d0"]
-    X = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221 #[...]也可改成[()]
+
     Y = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221
-    networks = dataset["weighted-multiplex/data/networks/d0/boat"] #20211226
-
-    # 他给的Spanish dataset里，node_attr/population为空。。 所以运行起来后一堆nan。这里暂时全部置1. 只需要运行一次 #20220101
-    #del networks['node_attr/population']
-	#networks['node_attr'].create_dataset('population', data=np.ones(52))
-
-
-
-    data = {
-        "inputs": dynalearn.datasets.DataCollection(name="inputs"),
-        "targets": dynalearn.datasets.DataCollection(name="targets"),
-        "networks": dynalearn.datasets.DataCollection(name="networks"),
-    }
-    inputs = np.zeros((X.shape[0] - (lag - 1) * lagstep, X.shape[1], num_states, lag)) #X.shape[1]即num_nodes, X.shape[0]即num_timesteps
     targets = np.zeros((Y.shape[0] - (lag - 1) * lagstep, Y.shape[1], num_states))
-    for t in range(inputs.shape[0]):
-        x = X[t : t + lag * lagstep : lagstep]
+    for t in range(targets.shape[0]):
         y = Y[t + lag * lagstep - 1]
         if incidence:
-            x = x.reshape(*x.shape, 1)
             y = y.reshape(*y.shape, 1)
-        x = np.transpose(x, (1, 2, 0))
-        inputs[t] = x
         targets[t] = y
     
-    data["inputs"].add(dynalearn.datasets.StateData(data=inputs))
-    data["targets"].add(dynalearn.datasets.StateData(data=targets))
-    data["networks"].add(dynalearn.datasets.NetworkData(data=networks))
+    return targets
 
-    #pop = data["networks"][0].data.node_attr["population"] #20211222注释掉,因为下文也没用到
-    experiment.dataset.data = data #到这一步，样本weights还和我输入的一样（CBG全1，POI全0）
-    experiment.test_dataset = experiment.dataset.partition(
-        type="cleancut", ti=335, tf=-1
-    )
-    experiment.partition_val_dataset()
+
+def loading_covid_data(
+    experiment, path_to_covid, lag=1, lagstep=1, incidence=True, threshold=False
+):
+    pre_exists = experiment.load_data(label_with_mode=False) #20220104
+    pdb.set_trace()
+
+    if(not pre_exists):#if(True):
+    
+        print("Unable to load data, construct from scratch.")
+        if incidence:
+            #dataset = h5py.File(os.path.join(path_to_covid, "spain-covid19cases.h5"), "r")
+            print('path_to_covid: ', path_to_covid)
+            dataset = h5py.File(os.path.join(os.path.abspath('../..'),path_to_covid, "spain-covid19-dataset.h5"), "r") #20211221
+            num_states = 1
+        else:
+            dataset = h5py.File(os.path.join(path_to_covid, "spain-covid19.h5"), "r")
+            num_states = 3
+        #X = dataset["weighted-multiplex/data/inputs/d0"][...]
+        #Y = dataset["weighted-multiplex/data/targets/d0"][...]
+        #networks = dataset["weighted-multiplex/data/networks/d0"]
+        X = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221 #[...]也可改成[()]
+        Y = dataset["weighted-multiplex/data/timeseries/d0"][...] #20211221
+        networks = dataset["weighted-multiplex/data/networks/d0/boat"] #20211226
+
+        # 他给的Spanish dataset里，node_attr/population为空。。 所以运行起来后一堆nan。这里暂时全部置1. 只需要运行一次 #20220101
+        #del networks['node_attr/population']
+        #networks['node_attr'].create_dataset('population', data=np.ones(52))
+
+        data = {
+            "inputs": dynalearn.datasets.DataCollection(name="inputs"),
+            "targets": dynalearn.datasets.DataCollection(name="targets"),
+            "networks": dynalearn.datasets.DataCollection(name="networks"),
+        }
+        inputs = np.zeros((X.shape[0] - (lag - 1) * lagstep, X.shape[1], num_states, lag)) #X.shape[1]即num_nodes, X.shape[0]即num_timesteps
+        targets = np.zeros((Y.shape[0] - (lag - 1) * lagstep, Y.shape[1], num_states))
+        for t in range(inputs.shape[0]):
+            x = X[t : t + lag * lagstep : lagstep]
+            y = Y[t + lag * lagstep - 1]
+            if incidence:
+                x = x.reshape(*x.shape, 1)
+                y = y.reshape(*y.shape, 1)
+            x = np.transpose(x, (1, 2, 0))
+            inputs[t] = x
+            targets[t] = y
+        
+        data["inputs"].add(dynalearn.datasets.StateData(data=inputs))
+        data["targets"].add(dynalearn.datasets.StateData(data=targets))
+        data["networks"].add(dynalearn.datasets.NetworkData(data=networks))
+
+        #pop = data["networks"][0].data.node_attr["population"] #20211222注释掉,因为下文也没用到
+        experiment.dataset.data = data #到这一步，样本weights还和我输入的一样（CBG全1，POI全0）
+        experiment.test_dataset = experiment.dataset.partition(
+            type="cleancut", ti=335, tf=-1
+        )
+        experiment.partition_val_dataset()
+        pdb.set_trace()
+
+    else:
+        index = 0
+        indices_dict = {}
+        for i in range(experiment.dataset.data["networks"].size):
+            for j in range(experiment.dataset.data["inputs"][i].size):
+                indices_dict[index] = (i, j)
+                index += 1
+        experiment.dataset.indices = indices_dict
+        experiment.test_dataset.indices = indices_dict
+        experiment.val_dataset.indices = indices_dict 
+        #experiment.test_dataset = experiment.dataset.partition(
+        #    type="cleancut", ti=335, tf=-1
+        #)
+        #experiment.partition_val_dataset()
+        pdb.set_trace()
+
     #return experiment #original
-    return experiment,targets #20211229
+    #return experiment,targets #20211229
+    return experiment, pre_exists #20220104
+
 
 
 ## REQUIRED PARAMETERS
@@ -226,7 +274,7 @@ config.metrics.names = [
 ]
 '''
 config.metrics.names = [ #20211229
-    "TrueForecastMetrics",
+    #"TrueForecastMetrics",
     "GNNForecastMetrics",
 ]
 config.metrics.num_steps = [1, 7, 14]
@@ -234,7 +282,7 @@ config.metrics.num_steps = [1, 7, 14]
 # Defining the experiment
 experiment = dynalearn.experiments.Experiment(config, verbose=args.verbose)
 
-experiment.clean()
+#experiment.clean()
 experiment.begin()
 experiment.dataset.setup(experiment)
 experiment.save_config()
@@ -242,8 +290,15 @@ experiment.save_config()
 # Training on covid data
 experiment.mode = "main"
 '''
-#original
-loading_covid_data(
+loading_covid_data( #original
+    experiment,
+    args.path_to_covid,
+    lag=args.lag,
+    lagstep=args.lagstep,
+    incidence=bool(args.incidence),
+)
+
+_,target = loading_covid_data( #20211229
     experiment,
     args.path_to_covid,
     lag=args.lag,
@@ -251,20 +306,36 @@ loading_covid_data(
     incidence=bool(args.incidence),
 )
 '''
-_,target = loading_covid_data(
+#pdb.set_trace()
+
+
+_,pre_exists = loading_covid_data( #20220104
     experiment,
     args.path_to_covid,
     lag=args.lag,
     lagstep=args.lagstep,
     incidence=bool(args.incidence),
 )
-#pdb.set_trace()
+
+target = loading_prediction_targets( #20220104
+    experiment,
+    args.path_to_covid,
+    lag=args.lag,
+    lagstep=args.lagstep,
+    incidence=bool(args.incidence),
+    )
+
+if(not pre_exists):
+    print('Save constructed dataset first..')
+    pdb.set_trace()
+    experiment.save_data(label_with_mode=False) #20220104, save constructed data
+
 experiment.model.nn.history.reset()
 experiment.callbacks[0].current_best = np.inf
 experiment.train_model(save=False, restore_best=True) #调用experiments/experiment.py(166)train_model()
 experiment.compute_metrics()
 
-true_forecast = experiment.metrics["TrueForecastMetrics"].data["test-1"] # Ground Truth (GT)
+#true_forecast = experiment.metrics["TrueForecastMetrics"].data["test-1"] # Ground Truth (GT)
 gnn_forecast = experiment.metrics["GNNForecastMetrics"].data["test-1"] # GNN prediction
 pdb.set_trace()
 

@@ -24,7 +24,7 @@ class ForecastMetrics(Metrics):
     def initialize(self, experiment):
         return
 
-    def compute(self, experiment, verbose=Verbose()):
+    def compute(self, experiment, verbose=Verbose()): #从experiments/experiment.py的compute_metrics()跳过来
         print('Entered compute()')#; pdb.set_trace()
         self.verbose = verbose
         self.initialize(experiment)
@@ -58,13 +58,15 @@ class ForecastMetrics(Metrics):
         self.exit(experiment)
 
     def _get_forecast_(self, dataset, num_steps=1, pb=None):
-        #print('Entered _get_forecast_()')#; pdb.set_trace()
+        #print('Entered _get_forecast_()')#; 
+        #pdb.set_trace()
         if dataset.shape[0] - num_steps + 1 < 0:
             return np.zeros((0, *dataset.shape[1:-1]))
         y = np.zeros((dataset.shape[0] - num_steps + 1, *dataset.shape[1:-1]))
         for i, x in enumerate(dataset[:-num_steps]):
+            #if(i==0):continue
             for t in range(num_steps):
-                yy = self.model.sample(x)
+                yy = self.model.sample(x) #调用dynamics/deterministic_epidemics/base.py(101)sample()
                 x = np.roll(x, -1, axis=-1)
                 x.T[-1] = yy.T
                 if pb is not None:
@@ -92,7 +94,7 @@ class GNNForecastMetrics(ForecastMetrics):
         return model
 
 
-class TrueForecastMetrics(ForecastMetrics):
+class TrueForecastMetrics(ForecastMetrics):#用网络底层的dynamics生成results
     def get_model(self, experiment):
         print('Entered TrueForecastMetrics.get_model() in experiments/metrics/forcast.py.')
         model = experiment.dynamics

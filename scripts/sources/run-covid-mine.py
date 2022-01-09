@@ -23,7 +23,7 @@ from os.path import exists, join
 
 MSA_NAME = 'SanFrancisco' #test #20211223
 
-gen_code = 1
+#gen_code = 1
 
 
 ###############################################################################
@@ -54,8 +54,7 @@ def loading_prediction_targets(
 def loading_covid_data(
     experiment, path_to_covid, gen_code=0, lag=1, lagstep=1, incidence=True, threshold=False
 ):
-    #pre_exists = experiment.load_data(label_with_mode=False) #20220104, problem during training, 暂时不用
-    pre_exists = False
+    pre_exists = experiment.load_data(label_with_mode=False) #20220104, problem during training, 暂时不用 #20220108,debugged
     #experiment.dataset = experiment._dataset #20220104, 不对
     if(not pre_exists):
         print("Unable to load data, construct from scratch.")
@@ -109,7 +108,17 @@ def loading_covid_data(
         ) #This line uses time: 0.002s
         experiment.partition_val_dataset() #This line uses time: 0.015s #这个会改变weights
         
-   
+    else:
+        index = 0
+        indices_dict = {}
+        for i in range(experiment.dataset.data["networks"].size):
+            for j in range(experiment.dataset.data["inputs"][i].size):
+                indices_dict[index] = (i, j)
+                index += 1
+        experiment.dataset.indices = indices_dict
+        experiment.test_dataset.indices = indices_dict
+        experiment.val_dataset.indices = indices_dict 
+
     #return experiment #original
     #return experiment,targets #20211229
     return experiment, pre_exists #20220104
@@ -234,6 +243,9 @@ parser.add_argument( #20220105
 args = parser.parse_args()
 
 print('Gen code: ', args.gen_code) #20220105
+args.name = str(args.gen_code)+'-'+args.name #20220108
+print('Name: ', args.name) #20220108
+#pdb.set_trace()
 
 if args.seed == -1:
     args.seed = int(time.time())
@@ -279,7 +291,7 @@ config.metrics.names = [
 ]
 '''
 config.metrics.names = [ #20211229
-    "TrueForecastMetrics",
+    #"TrueForecastMetrics",
     "GNNForecastMetrics",
 ]
 config.metrics.num_steps = [1, 7, 14]
@@ -315,61 +327,13 @@ _,target = loading_covid_data( #20211229
 )
 '''
 
-#####test#####
-'''
-pre_exists = experiment.load_data(label_with_mode=False)
-pdb.set_trace()
-
-path_to_covid =args.path_to_covid
-lag=args.lag
-lagstep=args.lagstep
-gen_code=gen_code
-incidence=bool(args.incidence)
-dataset = h5py.File(os.path.join(os.path.abspath('../..'),path_to_covid, "data_%s_gencode%s.h5"%(MSA_NAME,str(gen_code))), "r") #20211223
-num_states = 1
-X = dataset['timeseries'][...]
-Y = dataset['timeseries'][...]
-networks = dataset['networks']
-data = {
-    "inputs": dynalearn.datasets.DataCollection(name="inputs"),
-    "targets": dynalearn.datasets.DataCollection(name="targets"),
-    "networks": dynalearn.datasets.DataCollection(name="networks"),
-}
-inputs = np.zeros((X.shape[0] - (lag - 1) * lagstep, X.shape[1], num_states, lag)) #X.shape[1]即num_nodes, X.shape[0]即num_timesteps
-targets = np.zeros((Y.shape[0] - (lag - 1) * lagstep, Y.shape[1], num_states))
-for t in range(inputs.shape[0]):
-    x = X[t : t + lag * lagstep : lagstep]
-    y = Y[t + lag * lagstep - 1]
-    if incidence:
-        x = x.reshape(*x.shape, 1)
-        y = y.reshape(*y.shape, 1)
-    x = np.transpose(x, (1, 2, 0))
-    inputs[t] = x
-    targets[t] = y
-data["inputs"].add(dynalearn.datasets.StateData(data=inputs))
-data["targets"].add(dynalearn.datasets.StateData(data=targets))
-start = time.time()
-data["networks"].add(dynalearn.datasets.NetworkData(data=networks)) #This line uses time: 2.80s
-print('Initialize experiment.dataset.data with data.')
-experiment.dataset.data = data #This line uses time: 425.95s #experiment.dataset.data['inputs'].data_list[0].data.shape:(59, 52, 1, 5)
-
-experiment.test_dataset = experiment.dataset.partition(
-    type="cleancut", 
-    #ti=335, #original
-    ti=50,
-    tf=-1
-) #This line uses time: 0.002s
-experiment.partition_val_dataset() #This line uses time: 0.015s
-pdb.set_trace()
-'''
-#####test#####
 
 _,pre_exists = loading_covid_data( #20220104
     experiment,
     args.path_to_covid,
     lag=args.lag,
     lagstep=args.lagstep,
-    gen_code=gen_code,
+    gen_code=args.gen_code,
     incidence=bool(args.incidence),
 )
 
@@ -378,7 +342,7 @@ target = loading_prediction_targets( #20220104
     args.path_to_covid,
     lag=args.lag,
     lagstep=args.lagstep,
-    gen_code=gen_code,
+    gen_code=args.gen_code,
     incidence=bool(args.incidence),
     )
 
@@ -389,11 +353,11 @@ if(not pre_exists):
 #pdb.set_trace()
 experiment.model.nn.history.reset()
 experiment.callbacks[0].current_best = np.inf
-pdb.set_trace()
+#pdb.set_trace()
 experiment.train_model(save=False, restore_best=True)
 experiment.compute_metrics() #调用experiments/experiment.py的def compute_metrics()
 
-true_forecast = experiment.metrics["TrueForecastMetrics"].data["test-1"] # Ground Truth (GT) #20211229
+#true_forecast = experiment.metrics["TrueForecastMetrics"].data["test-1"] # Ground Truth (GT) #20211229 #(20220107)这不是ground truth，是用synthetic dynamics仿真得到的结果，只适用于synthetic experiments
 gnn_forecast = experiment.metrics["GNNForecastMetrics"].data["test-1"] # GNN prediction #20211229
 pdb.set_trace()
 

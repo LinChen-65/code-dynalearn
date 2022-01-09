@@ -172,7 +172,7 @@ class Experiment:
             epochs=self.train_details.epochs,
             batch_size=self.train_details.batch_size,
             val_dataset=self.val_dataset,
-            metrics=self.train_metrics,
+            metrics=self.train_metrics, #experiment.train_metrics: 'loss': bound method IncidenceEpidemicsGNN.loss of IncidenceEpidemicsGNN)
             callbacks=self.callbacks,
             loggers=self.loggers,
             verbose=self.verbose,
@@ -222,7 +222,7 @@ class Experiment:
                     group = f.create_group(self.mode)
                 else:
                     group = f[self.mode]
-                for k, m in self.metrics.items():
+                for k, m in self.metrics.items(): #experiment.metrics: {'TrueForecastMetrics': <dynalearn.experiments.metrics.forecast.TrueForecastMetrics object at 0x7fba489cab70>, 'GNNForecastMetrics': <dynalearn.experiments.metrics.forecast.GNNForecastMetrics object at 0x7fba489cabe0>}
                     self.loggers.on_task_update("metrics")
                     m.compute(self, verbose=self.verbose)
                     m.save(group)
@@ -395,7 +395,7 @@ class Experiment:
             with h5py.File(join(self.path_to_data, self.fname_data), "r") as f:
                 for k, v in f.items():
                     pdb.set_trace()
-                    if label_with_mode:
+                    if label_with_mode: #False
                         mode, name = k.split("-")
                     else:
                         name = k

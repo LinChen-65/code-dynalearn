@@ -1,5 +1,7 @@
 import numpy as np
 
+from dynalearn.nn.models import deterministic_epidemics
+
 from .base import (
     DeterministicEpidemics,
     WeightedDeterministicEpidemics,
@@ -68,7 +70,7 @@ class SimpleDSIR(DeterministicEpidemics):
 
     def update(self, x):
         p = np.zeros((self.num_nodes, 3))
-        infection_prob = self.infection(x)
+        infection_prob = self.infection(x) #调用dynamics/deterministic_epidemics/base.py的infection()
         s = x[:, 0].squeeze()
         i = x[:, 1].squeeze()
         p[:, 0] -= infection_prob * s
@@ -76,7 +78,7 @@ class SimpleDSIR(DeterministicEpidemics):
 
         p[:, 1] -= self.recovery_prob * i
         p[:, 2] += self.recovery_prob * i
-        return p
+        return p #返回dynamics/deterministic_epidemics/base.py的predict()
 
     def infection_rate(self, x):
         #print('Entered infection_rate() in dynamics/deterministic_epidemics/simple.py.')
@@ -85,7 +87,9 @@ class SimpleDSIR(DeterministicEpidemics):
         if self.infection_type == 1:
             return 1 - (1 - self.infection_prob) ** I
         elif self.infection_type == 2:
-            return 1 - (1 - self.infection_prob / self.population) ** I
+            if(np.isnan(self.infection_prob).any() or np.isnan(self.population.any())):
+                pdb.set_trace()
+            return 1 - (1 - self.infection_prob / self.population) ** I #回到dynamics/deterministic_epidemics/base.py的infection()
         #print('Leave infection_rate() in dynamics/deterministic_epidemics/simple.py.')
 
 

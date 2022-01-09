@@ -58,7 +58,7 @@ class Dataset:
         return self
 
     def __next__(self):
-        return self[self.rev_indices[self.sampler()]]
+        return self[self.rev_indices[self.sampler()]] #这里与NoneType的bug有关
 
     def generate(self, experiment, verbose=Verbose()):
         details = self.setup(experiment)

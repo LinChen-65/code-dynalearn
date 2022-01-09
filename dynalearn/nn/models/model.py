@@ -16,6 +16,8 @@ from dynalearn.util import Verbose, LoggerDict
 
 import pdb
 
+NUM_CBGS = 2943 #temporary; 20 for Spanish, 2943 for SanFrancisco
+
 class Model(nn.Module):
     def __init__(self, config=None, **kwargs):
         nn.Module.__init__(self)
@@ -45,7 +47,7 @@ class Model(nn.Module):
         loggers=None,
         verbose=Verbose(),
     ):
-        self.train()
+        self.train() #Set the module in training mode
         callbacks = callbacks or CallbackList()
         if isinstance(callbacks, list):
             callbacks = CallbackList(callbacks)
@@ -68,9 +70,9 @@ class Model(nn.Module):
                 dataset, batch_size=batch_size, callbacks=callbacks, verbose=verbose
             )
 
-            train_metrics = self.evaluate(dataset, metrics=metrics, verbose=verbose)
+            train_metrics = self.evaluate(dataset, metrics=metrics, verbose=verbose) #这里有bug: TypeError: 'NoneType' object is not subscriptable #已解决
             if val_dataset is not None:
-                val_metrics = self.evaluate(
+                val_metrics = self.evaluate(  #这里有bug: TypeError: 'NoneType' object is not subscriptable, 说明是val_dataset的问题
                     val_dataset, metrics=metrics, name="val", verbose=verbose
                 )
             else:
@@ -86,7 +88,7 @@ class Model(nn.Module):
             verbose(self.history.display())
 
         callbacks.on_train_end(self.history._epoch_logs)
-        self.eval()
+        self.eval() #Set the module in evaluation mode
 
     def _do_epoch_(
         self, dataset, batch_size=1, callbacks=CallbackList(), verbose=Verbose()
@@ -96,8 +98,8 @@ class Model(nn.Module):
         if len(dataset) % batch_size > 0:
             num_updates += 1
         pb = verbose.progress_bar("Epoch %d" % (epoch), num_updates)
-
-        self.train()
+  
+        self.train() #Set the module in training mode
         for batch in dataset.to_batch(batch_size): #调用datasets/dataset.py的to_batch()->调用datasets/sampler.py
             #pdb.set_trace()
             self.optimizer.zero_grad()
@@ -115,7 +117,7 @@ class Model(nn.Module):
             loss.backward()
             callbacks.on_backward_end(self.history.batch)
 
-            self.optimizer.step() #20220103 #这一句后出现nan #部分p.grad=NaN
+            self.optimizer.step() #20220103 #这一句后出现nan #部分p.grad=NaN #已解决
             callbacks.on_batch_end(self.history.batch, logs)
             if pb is not None:
                 pb.set_description(f"Epoch {epoch} loss: {loss:.4f}")
@@ -134,9 +136,9 @@ class Model(nn.Module):
         for data in batch:
             y_true, y_pred, w = self.prepare_output(data)
             #loss += self.loss(y_true, y_pred, w) #original
-            num_cbgs = 20 #test
+            num_cbgs = NUM_CBGS #2943 #20 #test
             #loss += self.loss(y_true[:num_cbgs], y_pred[:num_cbgs], w[:num_cbgs]) #mask: only compute cbg losses #method1, fail #20220103
-            y_true[num_cbgs:] = 0 #method2 #20220103
+            y_true[num_cbgs:] = 0 #method2 #20220103 
             y_pred[num_cbgs:] = 0
             loss += self.loss(y_true, y_pred, w)
             num_samples += 1
@@ -161,8 +163,17 @@ class Model(nn.Module):
         #pdb.set_trace() 
 
         norm = 0.0
+        verbose_count = 0 #(20220107)只打印10次运行时间
         for data in dataset:
+            break
+        for data in dataset: #这里有bug: TypeError: 'NoneType' object is not subscriptable
+            if('data' not in locals()):
+                continue
+            start_time = time.time()
             y_true, y_pred, w = self.prepare_output(data) #这是怎么从data里把w拿出来的？
+            if(verbose_count<10): #20220107
+                print('Forwarding this batch uses time: ', time.time()-start_time); 
+                verbose_count += 1
             z = w.sum().cpu().detach().numpy()
             norm += z
             for m in metrics:
@@ -179,12 +190,13 @@ class Model(nn.Module):
             logs[prefix + m] = logs[prefix + m] / norm
         return logs
 
-    def prepare_output(self, data):
+    def prepare_output(self, data): #一个时间步
         #pdb.set_trace()
         data = self.transformers.forward(data) #这是怎么从data里把w拿出来的？
         (x, g), y, w = data
         y_true = y
         y_pred = self.forward(x, g) #这里有bug: RuntimeError: mat1 dim 1 must match mat2 dim 0 #这里的forward调用gnn.py的def forward(self, x, network_attr)
+        
         return y_true, y_pred, w
 
     def get_weights(self):

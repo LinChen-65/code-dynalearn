@@ -9,7 +9,8 @@ from script import launch_scan
 
 #sys.path.append("../figure-6")
 
-name = "exp"
+#name = "exp" #original
+name = 'originalSpanish' #20220107
 #specs = json.load(open("./specs.json", "r"))["default"]
 specs = json.load(open(os.path.join(os.path.abspath('..'),"sources/specs.json"), "r"))["default"] #20211221
 config = {

@@ -34,7 +34,7 @@ class DeterministicEpidemics(Dynamics):
         raise NotImplementedError()
 
     def infection(self, x):
-        infection = self.infection_rate(x).squeeze()
+        infection = self.infection_rate(x).squeeze() #调用dynamics/deterministic_epidemics/simple.py的infection_rate()
         k = self.node_degree
         k[k == 0] = 1
         update = (
@@ -42,7 +42,7 @@ class DeterministicEpidemics(Dynamics):
         )
         update[k == 0] = 0
         k[k == 0] = 1
-        return update
+        return update #返回dynamics/deterministic_epidemics/simple.py的update()
 
     def initial_state(self, init_param=None, density=None, squeeze=True):
         if init_param is None:
@@ -86,19 +86,19 @@ class DeterministicEpidemics(Dynamics):
     def loglikelihood(self, x):
         return 1
 
-    def predict(self, x):
+    def predict(self, x): 
         if len(x.shape) == 3:
             x = x[:, :, -1].squeeze()
-        dx = self.update(x)
+        dx = self.update(x) #调用dynamics/deterministic_epidemics/simple.py的update()
         y = x + dx
         y[y < 0] = 0
         y[y > 1] = 1
         y /= y.sum(-1, keepdims=True)
 
-        return y
+        return y #回到dynamics/deterministic_epidemics/incidence.py(51)predict()
 
     def sample(self, x):
-        return self.predict(x)
+        return self.predict(x) #调用dynamics/deterministic_epidemics/incidence.py(40)predict() #返回experiments/metrics/forecast.py(68)_get_forecast_()
 
     def is_dead(self, x):
         if np.all(x[:, 1] == 0):

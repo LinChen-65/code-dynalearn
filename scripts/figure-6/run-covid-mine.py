@@ -11,7 +11,8 @@ sys.path.append("../sources")
 from script import launch_scan
 
 
-name = "exp"
+#name = "exp" #original
+name = "safegraph-SanFrancisco"
 #specs = json.load(open("./specs.json", "r"))["default"]
 #specs = json.load(open(os.path.join(os.path.abspath('..'),"sources/specs.json"), "r"))["default"] #20211221
 specs = json.load(open(os.path.join(os.path.abspath('..'),"sources/specs.json"), "r"))["safegraph"] #20211223
