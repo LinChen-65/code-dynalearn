@@ -388,13 +388,13 @@ class Experiment:
             pickle.dump(self.config, f)
 
     def load_data(self, label_with_mode=True):
-        print('Entered load_data() in experiments/experimentpy.')
+        print('Entered load_data() in experiments/experiment.py.')
         pdb.set_trace()
         if exists(join(self.path_to_data, self.fname_data)):
             print('data already exists. directly load.')
             with h5py.File(join(self.path_to_data, self.fname_data), "r") as f:
                 for k, v in f.items():
-                    pdb.set_trace()
+                    #pdb.set_trace()
                     if label_with_mode: #False
                         mode, name = k.split("-")
                     else:

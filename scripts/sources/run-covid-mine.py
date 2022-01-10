@@ -1,5 +1,5 @@
 # python run-covid-mine.py gen_code
-# python run-covid-mine.py 3
+# python run-covid-mine.py 1
  
 import setproctitle
 setproctitle.setproctitle("gnn-simu-vac@chenlin")
@@ -18,13 +18,15 @@ import pdb
 
 from os.path import exists, join
 
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+
 ###############################################################################
 # Main variable settings
 
 MSA_NAME = 'SanFrancisco' #test #20211223
-
+NUM_CBGS = 2943 #SanFrancisco
 #gen_code = 1
-
 
 ###############################################################################
 # Functions
@@ -358,7 +360,30 @@ experiment.train_model(save=False, restore_best=True)
 experiment.compute_metrics() #调用experiments/experiment.py的def compute_metrics()
 
 #true_forecast = experiment.metrics["TrueForecastMetrics"].data["test-1"] # Ground Truth (GT) #20211229 #(20220107)这不是ground truth，是用synthetic dynamics仿真得到的结果，只适用于synthetic experiments
-gnn_forecast = experiment.metrics["GNNForecastMetrics"].data["test-1"] # GNN prediction #20211229
+gnn_forecast_test = experiment.metrics["GNNForecastMetrics"].data["test-1"].squeeze()[:,:NUM_CBGS] # GNN prediction #20211229
+gnn_forecast_total = experiment.metrics["GNNForecastMetrics"].data["total-1"].squeeze()[:,:NUM_CBGS] #20220109
+gnn_forecast_train = experiment.metrics["GNNForecastMetrics"].data["train-1"].squeeze()[:,:NUM_CBGS] #20220109
+
+test_days = gnn_forecast_test.shape[0]
+true_test = target.squeeze()[-test_days:,:NUM_CBGS]
+true_total = target.squeeze()[:,:NUM_CBGS]
+true_train = target.squeeze()[:-test_days,:NUM_CBGS]
+
+rmse_total = sqrt(mean_squared_error(gnn_forecast_total,true_total))
+rmse_test = sqrt(mean_squared_error(gnn_forecast_test,true_test))
+rmse_train = sqrt(mean_squared_error(gnn_forecast_train,true_train))
+print('rmse_total: ', rmse_total, '\nrmse_test: ', rmse_test,'\nrmse_train: ', rmse_train)
+
+#savepath = os.path.join(os.getcwd(), 'gt-generator/covid/outputs/gnn_forecast_results_b1.npy') #/data/chenlin/code-dynalearn/scripts/figure-6/gt-generator/covid/outputs/gnn_forecast_results.npy
+#np.save(savepath, gnn_forecast_total)
+#savepath = os.path.join(os.getcwd(), 'gt-generator/covid/outputs/true_results_b1.npy')
+#np.save(savepath, true_total) 
+
+#找出总病例数最多的k个CBG
+#k = 10
+#top_k_idx=true_total[-1,:].argsort()[::-1][0:k]
+
+
 pdb.set_trace()
 
 experiment.save(label_with_mode=False)

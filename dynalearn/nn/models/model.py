@@ -163,17 +163,19 @@ class Model(nn.Module):
         #pdb.set_trace() 
 
         norm = 0.0
-        verbose_count = 0 #(20220107)只打印10次运行时间
+        #verbose_count = 0 #(20220107)只打印10次运行时间
+        #batch_count = 0 #20220109
         for data in dataset:
             break
-        for data in dataset: #这里有bug: TypeError: 'NoneType' object is not subscriptable
+        for data in dataset: #这里有bug: TypeError: 'NoneType' object is not subscriptable #(20220108)已解决
+            #batch_count += 1
             if('data' not in locals()):
                 continue
             start_time = time.time()
-            y_true, y_pred, w = self.prepare_output(data) #这是怎么从data里把w拿出来的？
-            if(verbose_count<10): #20220107
-                print('Forwarding this batch uses time: ', time.time()-start_time); 
-                verbose_count += 1
+            y_true, y_pred, w = self.prepare_output(data) #这是怎么从data里把w拿出来的？y_true和y_pred形状均为(num_nodes,1)(31656,1)
+            #if(verbose_count<10): #20220107
+            #    print('Forwarding this batch uses time: ', time.time()-start_time); 
+            #    verbose_count += 1
             z = w.sum().cpu().detach().numpy()
             norm += z
             for m in metrics:
@@ -182,7 +184,7 @@ class Model(nn.Module):
                 )
             if pb is not None:
                 pb.update()
-
+        #print('batch_count: ', batch_count);pdb.set_trace()
         if pb is not None:
             pb.close()
 
@@ -195,7 +197,7 @@ class Model(nn.Module):
         data = self.transformers.forward(data) #这是怎么从data里把w拿出来的？
         (x, g), y, w = data
         y_true = y
-        y_pred = self.forward(x, g) #这里有bug: RuntimeError: mat1 dim 1 must match mat2 dim 0 #这里的forward调用gnn.py的def forward(self, x, network_attr)
+        y_pred = self.forward(x, g) #这里有bug: RuntimeError: mat1 dim 1 must match mat2 dim 0 #已解决 #这里的forward调用gnn.py的def forward(self, x, network_attr)
         
         return y_true, y_pred, w
 

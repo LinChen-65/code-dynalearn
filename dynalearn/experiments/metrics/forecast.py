@@ -6,6 +6,7 @@ from dynalearn.util import Verbose
 from dynalearn.dynamics.trainable import VARDynamics
 
 import pdb
+import time
 
 
 class ForecastMetrics(Metrics):
@@ -25,7 +26,7 @@ class ForecastMetrics(Metrics):
         return
 
     def compute(self, experiment, verbose=Verbose()): #从experiments/experiment.py的compute_metrics()跳过来
-        print('Entered compute()')#; pdb.set_trace()
+        print('Entered compute() in experiments/metrics/forcast.py.')#; pdb.set_trace()
         self.verbose = verbose
         self.initialize(experiment)
 
@@ -48,13 +49,15 @@ class ForecastMetrics(Metrics):
         pb = self.verbose.progress_bar(self.__class__.__name__, self.num_updates)
         for k, v in datasets.items():
             total = k == "total"
-            for s in self.num_steps:
+            for s in self.num_steps: #1
+                start = time.time()
                 self.data[f"{k}-{s}"] = self._get_forecast_(v, s, pb)
+                print(k,', Forecast takes time: ' ,time.time()-start)
 
         if pb is not None:
             pb.close()
 
-        print('Leave compute()')#; pdb.set_trace()
+        print('Leave compute() in experiments/metrics/forcast.py.')#; pdb.set_trace()
         self.exit(experiment)
 
     def _get_forecast_(self, dataset, num_steps=1, pb=None):

@@ -1,5 +1,5 @@
-# python gt-gen-no-vac.py MSA_NAME RANDOM_SEED quick_test
-# python gt-gen-no-vac.py Atlanta 66 False
+# python gt-gen-no-vac.py MSA_NAME quick_test
+# python gt-gen-no-vac.py Atlanta False
 
 import setproctitle
 setproctitle.setproctitle("gnn-simu-vac@chenlin")
@@ -17,6 +17,7 @@ import functions
 import disease_model #disease_model_only_modify_attack_rates
 
 import pdb
+import time
 
 ###############################################################################
 # Constants
@@ -207,15 +208,19 @@ print('Age-aware CBG-specific death rates scaled.')
 vaccination_vector_no_vaccination = np.zeros(len(cbg_sizes))
 vaccine_acceptance = np.ones(len(cbg_sizes))
 # Run simulations
+start = time.time()
 history_C2_no_vaccination, history_D2_no_vaccination = run_simulation(starting_seed=STARTING_SEED, num_seeds=NUM_SEEDS, 
                                                                      vaccination_vector=vaccination_vector_no_vaccination, 
                                                                      vaccine_acceptance=vaccine_acceptance,
                                                                      protection_rate = PROTECTION_RATE)
-
+end1 = time.time()
 # Average history records across random seeds
 cases_cbg_no_vaccination, deaths_cbg_no_vaccination, _, _ = functions.average_across_random_seeds(history_C2_no_vaccination, history_D2_no_vaccination,
                                                                      M, idxs_msa_nyt, 
                                                                      print_results=False,draw_results=False)
+end2 = time.time()
+print('Time for simulation: ', end1 - start, '\nTime for simulation and averaging results: ', end2 - start)
+pdb.set_trace()
 
 savepath = os.path.join(gt_result_root, 'cases_cbg_no_vaccination_%s_%sseeds.npy' % (MSA_NAME, NUM_SEEDS))
 np.save(savepath, cases_cbg_no_vaccination)
