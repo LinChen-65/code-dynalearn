@@ -389,6 +389,7 @@ class Experiment:
 
     def load_data(self, label_with_mode=True):
         print('Entered load_data() in experiments/experiment.py.')
+        print('Target path to data: ', join(self.path_to_data, self.fname_data))
         pdb.set_trace()
         if exists(join(self.path_to_data, self.fname_data)):
             print('data already exists. directly load.')

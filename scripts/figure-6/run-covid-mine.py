@@ -21,6 +21,7 @@ config = {
     "path_to_covid": specs["path_to_data"],
     "epochs": 200, #original #20220109
     #"epochs": 3, #20220105
+    #"epochs": 2, #test #20220110
     "type": ["rnn"],
     "model": [
         "DynamicsGATConv",
@@ -29,9 +30,9 @@ config = {
         #"KapoorConv", #original
     ],
     "lag": [5],
-    "bias": [0.0, 0.25, 0.5, 0.75, 1.0], #original #20220109
+    #"bias": [0.0, 0.25, 0.5, 0.75, 1.0], #original #20220109
     #"bias": [0.0], #20211228
-    #"bias": [1], #20220103
+    "bias": [1], #20220103
     #"val_fraction": 0.1, #original
     "val_fraction": 0.01, #20220105
     "gen_code": int(sys.argv[1]), #20220105, 控制读入的dataset (含义见gt_generator/wrap_data.py)

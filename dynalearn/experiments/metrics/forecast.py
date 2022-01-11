@@ -42,16 +42,16 @@ class ForecastMetrics(Metrics):
             for k, v in datasets.items()
             if v is not None
         }
-        nobs = [v.shape[0] for k, v in datasets.items()]
+        nobs = [v.shape[0] for k, v in datasets.items()] #各数据集的time_step数量：[59, 50, 50, 9]
         self.num_updates = np.sum(
-            [[s * (n - s + 1) for s in self.num_steps] for n in nobs]
+            [[s * (n - s + 1) for s in self.num_steps] for n in nobs] #self.num_steps=1, self.num_updates=1*(59+50+50+9)=168
         )
         pb = self.verbose.progress_bar(self.__class__.__name__, self.num_updates)
         for k, v in datasets.items():
             total = k == "total"
-            for s in self.num_steps: #1
+            for s in self.num_steps: #self.num_steps=[1]
                 start = time.time()
-                self.data[f"{k}-{s}"] = self._get_forecast_(v, s, pb)
+                self.data[f"{k}-{s}"] = self._get_forecast_(v, s, pb) #f"{k}-{s}"形如"total-1""test-1" #(20220110)这里forecast后最后一天所有CBG的值都是0
                 print(k,', Forecast takes time: ' ,time.time()-start)
 
         if pb is not None:
@@ -61,21 +61,32 @@ class ForecastMetrics(Metrics):
         self.exit(experiment)
 
     def _get_forecast_(self, dataset, num_steps=1, pb=None):
-        #print('Entered _get_forecast_()')#; 
-        #pdb.set_trace()
+        print('Entered _get_forecast_() in experiments/metrics/forecast.py.')#;pdb.set_trace(); 
         if dataset.shape[0] - num_steps + 1 < 0:
             return np.zeros((0, *dataset.shape[1:-1]))
-        y = np.zeros((dataset.shape[0] - num_steps + 1, *dataset.shape[1:-1]))
-        for i, x in enumerate(dataset[:-num_steps]):
-            #if(i==0):continue
-            for t in range(num_steps):
-                yy = self.model.sample(x) #调用dynamics/deterministic_epidemics/base.py(101)sample()
-                x = np.roll(x, -1, axis=-1)
-                x.T[-1] = yy.T
-                if pb is not None:
-                    pb.update()
-            y[i] = yy
-        #print('Leave _get_forecast_()')#; pdb.set_trace()
+        y = np.zeros((dataset.shape[0] - num_steps + 1, *dataset.shape[1:-1])) # y.shape:(59, 31656, 1)
+
+        #for i, x in enumerate(dataset[:-num_steps]): #original #有问题，当num_steps=1时，取出的dataset少了最后一个time step，这就导致最后一个time step没有被预测，所有值都是0
+        if(num_steps==1):
+            for i, x in enumerate(dataset):
+                #if(i==0):continue
+                for t in range(num_steps): #num_steps=1
+                    yy = self.model.sample(x) #调用dynamics/deterministic_epidemics/base.py(101)sample()
+                    x = np.roll(x, -1, axis=-1)
+                    x.T[-1] = yy.T
+                    if pb is not None:
+                        pb.update()
+                y[i] = yy
+        else:
+            for i, x in enumerate(dataset[:,-num_steps+1]):
+                for t in range(num_steps): #num_steps=1
+                    yy = self.model.sample(x) #调用dynamics/deterministic_epidemics/base.py(101)sample()
+                    x = np.roll(x, -1, axis=-1)
+                    x.T[-1] = yy.T
+                    if pb is not None:
+                        pb.update()
+                y[i] = yy
+        print('Leave _get_forecast_() in experiments/metrics/forecast.py.')#; pdb.set_trace()
         return y
 
     def _get_data_(self, dataset, total=False):
