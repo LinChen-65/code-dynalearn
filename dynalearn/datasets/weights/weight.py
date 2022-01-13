@@ -38,7 +38,7 @@ class Weight(DataCollection):
             pb.update()
         return np.ones((states.shape[0], states.shape[1]))
 
-    def compute(self, dataset, verbose=Verbose()): #从datasets/continuous_dataset.py的weights.compute跳过来
+    def compute(self, dataset, verbose=Verbose()): 
         print('Entered compute() in datasets/weights/weight.py.')
         self.setUp(dataset)
         #pb = verbose.progress_bar("Computing weights", self.num_updates) #original 
@@ -70,7 +70,7 @@ class Weight(DataCollection):
 
     def compute_weights(self, dataset, pb=None):
         print('Entered compute_weights() in datasets/weights/weight.py.');start=time.time()
-        pdb.set_trace()
+        #pdb.set_trace()
         weights = []
         for i in range(dataset.networks.size):
             #if(i%1000==0):print('***',i,'***')
@@ -80,8 +80,8 @@ class Weight(DataCollection):
                 g = g.collapse()
             self.check_network(g)
             self.check_state(x)
-            #w = self._get_weights_(g, x, pb=pb) ** (-self.bias) #original #如果self.bias=0，则所有weight又都变回了1，等权重
-            w = self._get_weights_(g, x, pb=pb) #调用datasets/weights/continuous.py的_get_weights_() 
+            w = self._get_weights_(g, x, pb=pb) ** (-self.bias) #original,20220111 #调用datasets/weights/continuous.py的_get_weights_()  #test时如果self.bias=0，则所有weight又都变回了1，等权重[deprecated]
+            #w = self._get_weights_(g, x, pb=pb) #test 
             weights = StateData(data=w)
             self.add(weights) #self: datasets.weights.continuous.StrengthContinuousGlobalStateWeight object, 继承datasets/data/data.py的class DataCollection的add()方法，把weights加入self.data_list中
         print('Leave compute_weights() in datasets/weights/weight.py.');print('Time: ', time.time()-start)

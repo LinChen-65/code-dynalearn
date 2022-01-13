@@ -12,10 +12,18 @@ from script import launch_scan
 
 
 #name = "exp" #original
-name = "safegraph-SanFrancisco"
+#name = "safegraph-SanFrancisco" #20220109 #does not implement Importance Sampling
+name = "safegraph-SanFrancisco-importance" #20220111 #implements Importance Sampling
+print('model name: ', name)
 #specs = json.load(open("./specs.json", "r"))["default"]
 #specs = json.load(open(os.path.join(os.path.abspath('..'),"sources/specs.json"), "r"))["default"] #20211221
 specs = json.load(open(os.path.join(os.path.abspath('..'),"sources/specs.json"), "r"))["safegraph"] #20211223
+if(sys.argv[1]=='all'): #20220112
+    bias = [0.0, 0.25, 0.5, 0.75, 1.0]
+else:
+    bias = [float(sys.argv[1])]
+print('bias from importance sampling: ', bias)
+
 config = {
     "name": name,
     "path_to_covid": specs["path_to_data"],
@@ -32,10 +40,11 @@ config = {
     "lag": [5],
     #"bias": [0.0, 0.25, 0.5, 0.75, 1.0], #original #20220109
     #"bias": [0.0], #20211228
-    "bias": [1], #20220103
+    #"bias": [1], #20220103
+    "bias": bias,
     #"val_fraction": 0.1, #original
     "val_fraction": 0.01, #20220105
-    "gen_code": int(sys.argv[1]), #20220105, 控制读入的dataset (含义见gt_generator/wrap_data.py)
+    "gen_code": int(sys.argv[2]), #20220105, 控制读入的dataset (含义见gt_generator/wrap_data.py)
 }
 launch_scan(
     name,

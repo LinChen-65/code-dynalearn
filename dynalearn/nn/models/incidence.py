@@ -36,5 +36,5 @@ class IncidenceEpidemicsGNN(GraphNeuralNetwork):
         )
         print('Leave IncidenceEpidemicsGNN.__init__()') #回到dynamics/trainable/incidence.py(23)__init__()
 
-    def loss(self, y_true, y_pred, weights):
+    def loss(self, y_true, y_pred, weights): #从nn/models/model.py的def _do_batch_()的loss += self.loss(y_true, y_pred, w)跳过来
         return weighted_mse(y_true, y_pred, weights=weights)

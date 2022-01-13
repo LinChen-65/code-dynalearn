@@ -14,6 +14,7 @@ from dynalearn.datasets.weights import (
     StrengthContinuousCompoundStateWeight,
 )
 from dynalearn.config import Config
+from dynalearn.datasets.weights.continuous import NUM_CBGS
 from dynalearn.util import from_nary
 from dynalearn.util import to_edge_index, onehot, get_node_attr
 
@@ -76,4 +77,5 @@ class ContinuousStateWeightDataset(ContinuousDataset):
                 weights = ContinuousStateWeight(bias=self.bias)
         print('Next line: weights.compute')
         weights.compute(self, verbose=self.verbose) #转到datasets/weights/weight.py的def compute
+        weights.data_list[0].data[:,NUM_CBGS:]=np.nan_to_num(weights.data_list[0].data[:,NUM_CBGS:],posinf=0,neginf=0) #20220111
         return weights

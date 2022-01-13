@@ -128,19 +128,20 @@ class Model(nn.Module):
             pb.close()
         self.eval()
 
-    def _do_batch_(self, batch):
+    def _do_batch_(self, batch): #type(self):<class 'dynalearn.nn.models.incidence.IncidenceEpidemicsGNN'>
         loss = torch.tensor(0.0)
         if torch.cuda.is_available():
             loss = loss.cuda()
         num_samples = 0
         for data in batch:
-            y_true, y_pred, w = self.prepare_output(data)
+            #pdb.set_trace()#20220111
+            y_true, y_pred, w = self.prepare_output(data) #用normalizer归一化，且用CUDAtransformer转为cuda()
             #loss += self.loss(y_true, y_pred, w) #original
             num_cbgs = NUM_CBGS #2943 #20 #test
             #loss += self.loss(y_true[:num_cbgs], y_pred[:num_cbgs], w[:num_cbgs]) #mask: only compute cbg losses #method1, fail #20220103
             y_true[num_cbgs:] = 0 #method2 #20220103 
             y_pred[num_cbgs:] = 0
-            loss += self.loss(y_true, y_pred, w)
+            loss += self.loss(y_true, y_pred, w) #转到nn/models/incidence.py
             num_samples += 1
         return loss / num_samples
 
@@ -194,7 +195,7 @@ class Model(nn.Module):
 
     def prepare_output(self, data): #一个时间步
         #pdb.set_trace()
-        data = self.transformers.forward(data) #这是怎么从data里把w拿出来的？
+        data = self.transformers.forward(data) #这是怎么从data里把w拿出来的？ #type(self.transformers):<class 'dynalearn.nn.transformers.batch.BatchNormalizer'>, 跳到nn/transformers/batch.py的class BatchNormalizer的def forward()
         (x, g), y, w = data
         y_true = y
         y_pred = self.forward(x, g) #这里有bug: RuntimeError: mat1 dim 1 must match mat2 dim 0 #已解决 #这里的forward调用gnn.py的def forward(self, x, network_attr)

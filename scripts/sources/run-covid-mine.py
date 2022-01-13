@@ -383,6 +383,8 @@ print('rmse_total: ', rmse_total, '\nrmse_test: ', rmse_test,'\nrmse_train: ', r
 #k = 10
 #top_k_idx=true_total[-1,:].argsort()[::-1][0:k]
 
+print('Top-10 CBGs with most cases: ', true_total[-1,:].argsort()[::-1][0:10])
+print('Top-10 CBGs with largest prediction errors: ', abs(true_test[-1,:]-gnn_forecast_test[-1,:]).argsort()[::-1][0:10])
 
 pdb.set_trace()
 
