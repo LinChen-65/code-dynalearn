@@ -144,9 +144,7 @@ class GNNEmbeddingMetrics(ForecastMetrics): #20220115
     def get_model(self, experiment):
         print('Entered GNNEmbeddingMetrics.get_model() in experiments/metrics/forcast.py.')
         model = experiment.model
-        #replacement = nn.Identity()
         replacement = nn.Sequential()
-        #model.nn.out_layers[0] = replacement
         model.nn.out_layers = replacement
         '''
         model.nn.out_layers[0].layers[5] = Identity
@@ -154,6 +152,7 @@ class GNNEmbeddingMetrics(ForecastMetrics): #20220115
         model.nn.out_layers[0].layers[3] = Identity
         model.nn.out_layers[0].layers[2] = Identity
         model.nn.out_layers[0].layers[1] = Identity
+        #model.nn.out_layers[0] = replacement
         '''
         #model =  nn.Sequential(*list(experiment.model.nn.children())[:3], experiment.model.nn.out_layers[0].layers[0])
         
