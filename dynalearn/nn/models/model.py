@@ -46,7 +46,10 @@ class Model(nn.Module):
         callbacks=None,
         loggers=None,
         verbose=Verbose(),
+        retrieve_embedding=False, #20220115
     ):
+        print('Entered fit() in nn/models/model.py.')
+        pdb.set_trace()
         self.train() #Set the module in training mode
         callbacks = callbacks or CallbackList()
         if isinstance(callbacks, list):
@@ -67,7 +70,7 @@ class Model(nn.Module):
             t0 = time.time()
             #pdb.set_trace()
             self._do_epoch_(
-                dataset, batch_size=batch_size, callbacks=callbacks, verbose=verbose
+                dataset, batch_size=batch_size, callbacks=callbacks, verbose=verbose, retrieve_embedding=retrieve_embedding #20220115
             )
 
             train_metrics = self.evaluate(dataset, metrics=metrics, verbose=verbose) #这里有bug: TypeError: 'NoneType' object is not subscriptable #已解决
@@ -91,13 +94,16 @@ class Model(nn.Module):
         self.eval() #Set the module in evaluation mode
 
     def _do_epoch_(
-        self, dataset, batch_size=1, callbacks=CallbackList(), verbose=Verbose()
+        self, dataset, batch_size=1, callbacks=CallbackList(), verbose=Verbose(),retrieve_embedding=False, #20220115
     ):
+        #print('Entered _do_epoch_() in nn/models/model.py.')
+        #pdb.set_trace()
         epoch = self.history.epoch
         num_updates = len(dataset) // batch_size
         if len(dataset) % batch_size > 0:
             num_updates += 1
         pb = verbose.progress_bar("Epoch %d" % (epoch), num_updates)
+        
   
         self.train() #Set the module in training mode
         for batch in dataset.to_batch(batch_size): #调用datasets/dataset.py的to_batch()->调用datasets/sampler.py
@@ -106,7 +112,7 @@ class Model(nn.Module):
 
             callbacks.on_batch_begin(self.history.batch)
             t0 = time.time()
-            loss = self._do_batch_(batch)
+            loss = self._do_batch_(batch,retrieve_embedding=retrieve_embedding) #20220115
             t1 = time.time()
             logs = {
                 "batch": self.history.batch + 1,
@@ -128,14 +134,16 @@ class Model(nn.Module):
             pb.close()
         self.eval()
 
-    def _do_batch_(self, batch): #type(self):<class 'dynalearn.nn.models.incidence.IncidenceEpidemicsGNN'>
+    def _do_batch_(self, batch, retrieve_embedding=False): #20220115 #type(self):<class 'dynalearn.nn.models.incidence.IncidenceEpidemicsGNN'>
+        #print('Entered _do_batch_() in nn/models/model.py.')
+        #pdb.set_trace()
         loss = torch.tensor(0.0)
         if torch.cuda.is_available():
             loss = loss.cuda()
         num_samples = 0
         for data in batch:
             #pdb.set_trace()#20220111
-            y_true, y_pred, w = self.prepare_output(data) #用normalizer归一化，且用CUDAtransformer转为cuda()
+            y_true, y_pred, w = self.prepare_output(data,retrieve_embedding=retrieve_embedding) #用normalizer归一化，且用CUDAtransformer转为cuda()
             #loss += self.loss(y_true, y_pred, w) #original
             num_cbgs = NUM_CBGS #2943 #20 #test
             #loss += self.loss(y_true[:num_cbgs], y_pred[:num_cbgs], w[:num_cbgs]) #mask: only compute cbg losses #method1, fail #20220103
@@ -193,11 +201,14 @@ class Model(nn.Module):
             logs[prefix + m] = logs[prefix + m] / norm
         return logs
 
-    def prepare_output(self, data): #一个时间步
+    def prepare_output(self, data,retrieve_embedding=False): #一个时间步
         #pdb.set_trace()
         data = self.transformers.forward(data) #这是怎么从data里把w拿出来的？ #type(self.transformers):<class 'dynalearn.nn.transformers.batch.BatchNormalizer'>, 跳到nn/transformers/batch.py的class BatchNormalizer的def forward()
         (x, g), y, w = data
         y_true = y
+        #if(retrieve_embedding):
+        #    print('Stop here!')
+        #    pdb.set_trace()
         y_pred = self.forward(x, g) #这里有bug: RuntimeError: mat1 dim 1 must match mat2 dim 0 #已解决 #这里的forward调用gnn.py的def forward(self, x, network_attr)
         
         return y_true, y_pred, w
@@ -215,7 +226,7 @@ class Model(nn.Module):
         else:
             device = torch.device("cuda")
         state_dict = torch.load(path, map_location=device)
-        self.load_state_dict(state_dict)
+        self.load_state_dict(state_dict) #nn原生
         if torch.cuda.is_available():
             self.cuda()
             self.transformers = self.transformers.cuda()

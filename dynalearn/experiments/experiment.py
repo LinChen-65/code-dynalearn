@@ -162,12 +162,12 @@ class Experiment:
             self.verbose(f"Computation time: {t}\n")
 
     # All tasks
-    def train_model(self, save=True, restore_best=True):
+    def train_model(self, save=True, restore_best=True, retrieve_embedding=False): #20220115
         self.verbose("\n---Training model---")
         #pdb.set_trace()
 
         #self.model: self.model: <dynalearn.dynamics.trainable.incidence.SGNNIncidenceDynamics object>
-        self.model.nn.fit(  #调用nn/models/Model的fit()
+        self.model.nn.fit(  #调用nn/models/model.py的fit()
             self.dataset,
             epochs=self.train_details.epochs,
             batch_size=self.train_details.batch_size,
@@ -176,6 +176,7 @@ class Experiment:
             callbacks=self.callbacks,
             loggers=self.loggers,
             verbose=self.verbose,
+            retrieve_embedding=retrieve_embedding, #20220115
         ) #转到nn/transformers/batch.py(40)forward()
 
         if save:
@@ -229,7 +230,7 @@ class Experiment:
         else:
             for k, m in self.metrics.items():
                 self.loggers.on_task_update("metrics")
-                m.compute(self, verbose=self.verbose)
+                m.compute(self, verbose=self.verbose) #experiment.metrics['GNNForecastMetrics'].compute() #转到experiments/metrics/forecast.py的class ForecastMetrics的compute()
 
     def zip(self, to_zip=None):
         to_zip = to_zip or self.__files__
@@ -423,6 +424,7 @@ class Experiment:
             return False
 
     def load_model(self, restore_best=True, label_with_mode=True):
+        print('Entered load_model() in experiments/experiment.py.')
         # loading history
         if label_with_mode:
             fname = self.mode + "_" + self.fname_history
@@ -449,11 +451,12 @@ class Experiment:
         else:
             fname = self.fname_model
         if restore_best and exists(self.path_to_best):
-            self.model.nn.load_weights(self.path_to_best)
+            self.model.nn.load_weights(self.path_to_best) #转到nn/models/model.py的load_weights()
         elif exists(join(self.path_to_data, fname)):
             self.model.nn.load_weights(join(self.path_to_data, fname))
         else:
             self.verbose("Loading model: Did not find model to load.")
+        print('Leave load_model() in experiments/experiment.py.')
 
     def load_metrics(self, label_with_mode=True):
         if exists(join(self.path_to_data, self.fname_metrics)):

@@ -294,7 +294,8 @@ config.metrics.names = [
 '''
 config.metrics.names = [ #20211229
     #"TrueForecastMetrics",
-    "GNNForecastMetrics",
+    #"GNNForecastMetrics",
+    "GNNEmbeddingMetrics"
 ]
 config.metrics.num_steps = [1, 7, 14]
 
@@ -329,6 +330,29 @@ _,target = loading_covid_data( #20211229
 )
 '''
 
+# only retrieve embedding # 20220115
+retrieve_embedding = True
+if(retrieve_embedding):
+    experiment.load(label_with_mode=False) #20220115
+    index = 0
+    indices_dict = {}
+    for i in range(experiment.dataset.data["networks"].size):
+        for j in range(experiment.dataset.data["inputs"][i].size):
+            indices_dict[index] = (i, j)
+            index += 1
+    experiment.dataset.indices = indices_dict
+    experiment.test_dataset.indices = indices_dict
+    experiment.val_dataset.indices = indices_dict 
+    #pdb.set_trace()
+    experiment.compute_metrics()
+    node_embeddings = experiment.metrics["GNNEmbeddingMetrics"].data["total-1"].squeeze()[:NUM_CBGS,:]
+    print('Save node embeddings?')
+    pdb.set_trace()
+    np.save(os.path.join(os.getcwd(),f'gt-generator/covid/outputs/node_embeddings_b{args.bias}'), node_embeddings)
+
+    #experiment.train_model(save=False, restore_best=True,retrieve_embedding=True)
+    pdb.set_trace()
+
 
 _,pre_exists = loading_covid_data( #20220104
     experiment,
@@ -352,7 +376,8 @@ if(not pre_exists):
     print('Save constructed dataset first..')
     experiment.save_data(label_with_mode=False) #20220104, save constructed data
 
-#pdb.set_trace()
+
+
 experiment.model.nn.history.reset()
 experiment.callbacks[0].current_best = np.inf
 #pdb.set_trace()

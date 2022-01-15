@@ -87,6 +87,7 @@ class DeterministicEpidemics(Dynamics):
         return 1
 
     def predict(self, x): 
+        print('Entered predict() in dynamics/deterministic_epidemics/base.py.')
         if len(x.shape) == 3:
             x = x[:, :, -1].squeeze()
         dx = self.update(x) #调用dynamics/deterministic_epidemics/simple.py的update()
@@ -95,9 +96,12 @@ class DeterministicEpidemics(Dynamics):
         y[y > 1] = 1
         y /= y.sum(-1, keepdims=True)
 
+        print('Leave predict() in dynamics/deterministic_epidemics/base.py.')
         return y #回到dynamics/deterministic_epidemics/incidence.py(51)predict()
 
     def sample(self, x):
+        print('Entered sample() in dynamics/deterministic_epidemics/base.py.')
+        print('Leave sample() in dynamics/deterministic_epidemics/base.py.')
         return self.predict(x) #调用dynamics/deterministic_epidemics/incidence.py(40)predict() #返回experiments/metrics/forecast.py(68)_get_forecast_()
 
     def is_dead(self, x):

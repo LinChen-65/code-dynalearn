@@ -4,6 +4,7 @@ import torch
 from torch_geometric.nn.conv import MessagePassing
 from dynalearn.util import onehot
 
+import pdb
 
 class Propagator(MessagePassing):
     def __init__(self, num_states=None):
@@ -11,6 +12,9 @@ class Propagator(MessagePassing):
         self.num_states = num_states
 
     def forward(self, x, edge_index, w=None):
+        print('Entered forward() in nn/models/propagator.py.') #20220115
+        pdb.set_trace()
+
         if isinstance(x, np.ndarray):
             x = torch.Tensor(x)
         if isinstance(edge_index, np.ndarray):
@@ -27,6 +31,7 @@ class Propagator(MessagePassing):
             edge_index = edge_index.cuda()
             if w is not None:
                 w = w.cuda()
+        print('Leave forward() in nn/models/propagator.py.') #20220115
         return self.propagate(edge_index, x=x, w=w).T
 
     def message(self, x_j, w=None):

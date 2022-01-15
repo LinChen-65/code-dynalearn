@@ -23,6 +23,7 @@ __metrics__ = {
     "AttentionStatesNMIMetrics": AttentionStatesNMIMetrics,
     "AttentionNodeAttrNMIMetrics": AttentionNodeAttrNMIMetrics,
     "AttentionEdgeAttrNMIMetrics": AttentionEdgeAttrNMIMetrics,
+    "GNNEmbeddingMetrics":GNNEmbeddingMetrics, #20220115
 }
 
 

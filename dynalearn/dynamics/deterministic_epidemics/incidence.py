@@ -38,6 +38,7 @@ class SimpleIncSIR(SimpleDSIR):
             return x
 
     def predict(self, x):
+        print('Entered predict() in dynamics/deterministic_epidemics/incidence.py.')
         if x.ndim == 3:
             x = x[:, :, -1]
         x = x.squeeze()
@@ -52,6 +53,8 @@ class SimpleIncSIR(SimpleDSIR):
         current_i = self.latent_state[:, 1]
         future_i = p[:, 1] * self.population
         y = (future_i - current_i).reshape(-1, 1)
+
+        print('Leave predict() in dynamics/deterministic_epidemics/incidence.py.')
         return y #返回dynamics/deterministic_epidemics/base.py(101)sample()
 
 
